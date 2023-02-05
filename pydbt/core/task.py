@@ -1,10 +1,9 @@
 from dataclasses import dataclass, field
 from typing import Callable, List
-from core.dag import DagRunner
-from core.schedule import ScheduleInterface, Daily
+from pydbt.core.dag import DagRunner
+from pydbt.core.schedule import ScheduleInterface, Daily
 import functools
 import logging
-import traceback
 from datetime import datetime, timedelta
 
 
@@ -99,14 +98,18 @@ class Task:
             self._run_task_with_retry()
 
     def _run_task_with_retry(self):
+        self._count_call  = 0
         for n in range(self.retry + 1):
             try:
+                self._count_call += 1 
                 self._task()
                 break
             except Exception as e:
                 if n == self.retry:
+                    
                     logging.error(
                         f"task  {self.name} failed after {self.retry} attempts: {e}"
                     )
+                
                 else:
                     logging.info(f"retrying task {self.name} try number: {n}")
