@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from typing import Callable, List
-from pydbt.core.dag import DagRunner
+from pydbt.core.dag import Workflow
 from pydbt.core.schedule import ScheduleInterface, Daily
 import functools
 import logging
@@ -56,7 +56,7 @@ class Task:
         self._task = func
         self.name = f"{func.__module__}.{func.__name__}"
         logging.info(f"registring task {self.name}")
-        DagRunner.tasks.append(self)
+        Workflow.tasks.append(self)
 
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
