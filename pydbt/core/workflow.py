@@ -4,11 +4,12 @@ import logging
 import networkx as nx
 from dataclasses import dataclass, field
 from typing import List, ClassVar
-from pydbt.core.executors import ThreadExecutor
+from pydbt.core.executors import ThreadExecutor, AsyncExecutor, AbstractExecutor
 from pydbt.core.cache import CacheInterface
 from pydbt.core.dag import Dag
 import os
 import re
+import asyncio
 
 
 @dataclass
@@ -23,11 +24,12 @@ class Workflow(object):
 
     tasks: ClassVar[List] = field(default=[], init=False)
     dag: Dag = field(init=False)
-    executor: ThreadExecutor = field(init=False)
+    executor: AbstractExecutor = field(init=False)
     artifact_name: str = field(default=datetime.now().strftime("%Y%m%d_%H:%M:%S"))
     use_cache: bool = False
     cache_strategy: CacheInterface = field(default=None)
     _base_dir: str = field(default="state")
+    executor_type: str = field(default="")
 
     def __post_init__(self) -> None:
         """Create a DAG object after initialization."""
@@ -72,6 +74,7 @@ class Workflow(object):
         """Run the tasks in the DAG."""
         # Get a dictionary of all the task levels in the DAG
         levels = self.dag.levels
+        loop = asyncio.get_event_loop()
 
         # Iterate through each level in the DAG
         for level, task_indexes in levels.items():
@@ -86,13 +89,15 @@ class Workflow(object):
                 tasks_names = [task.name for task in tasks]
 
                 # Calculate the number of threads to use for the tasks set
-                nb_threads = len(tasks)
+                nb_workers = len(tasks)
                 logging.info(
-                    f"collected tasks set {tasks_names} using {nb_threads} threads"
+                    f"collected tasks set {tasks_names} using {nb_workers} threads"
                 )
 
-                executor = ThreadExecutor(tasks, nb_threads=nb_threads)
-                executor.run()
+                if self.executor_type == "ThreadExecutor":
+                    self.thread_run(tasks, nb_workers)
+                if self.executor_type == "AsyncExecutor":
+                    self.async_run(tasks, nb_workers, loop)
 
                 # If caching is enabled, dump the current task artifact
                 if self.cache_strategy and self.use_cache:
@@ -100,6 +105,15 @@ class Workflow(object):
                         artifact=self.tasks,
                         path=f"{self._base_dir}/task_{self.artifact_name}.pkl",
                     )
+        loop.close()
+
+    def thread_run(self, tasks, nb_workers):
+        self.executor = ThreadExecutor(tasks, nb_workers=nb_workers)
+        self.executor.run()
+
+    def async_run(self, tasks, nb_workers, loop):
+        self.executor = AsyncExecutor(tasks, nb_workers=nb_workers)
+        loop.run_until_complete(self.executor.run())
 
     def export_dag(self, path: str) -> None:
         """Export the DAG to a PNG image file.
@@ -112,7 +126,7 @@ class Workflow(object):
         pos = nx.spring_layout(graph)
         nx.draw(graph, pos=pos)
         nx.draw_networkx_labels(graph, pos=pos, labels=node_names)
-        plt.savefig(f"{path}/dag.png")
+        plt.savefig(f"{path}")
 
     def extract_timestamp(self, file_name):
         # Extract the timestamp string from the file name using a regular expression
