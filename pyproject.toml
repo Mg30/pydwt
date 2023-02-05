@@ -11,6 +11,7 @@ networkx = "^3.0"
 matplotlib = "^3.6.3"
 sqlalchemy = "^2.0.1"
 dill = "^0.3.6"
+typer = "^0.7.0"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -20,3 +21,6 @@ black = "^23.1.0"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+pydbt = "pydbt.app:app"
