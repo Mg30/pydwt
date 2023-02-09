@@ -59,6 +59,8 @@ class Task:
         """
         self._task = func
         self.name = f"{func.__module__}.{func.__name__}"
+
+        task_config = Workflow.settings[f"{func.__module__}.{func.__name__}"]
         logging.info(f"registring task {self.name}")
         Workflow.tasks.append(self)
 
@@ -106,7 +108,8 @@ class Task:
         for n in range(self.retry + 1):
             try:
                 self._count_call += 1
-                self._task()
+                task_settings = Workflow.settings[self.name]
+                self._task(task_settings)
                 break
             except Exception as e:
                 if n == self.retry:
