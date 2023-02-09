@@ -23,13 +23,12 @@ class Workflow(object):
     """
 
     tasks: ClassVar[List] = field(default=[], init=False)
+    settings: ClassVar[dict] = field(default={}, init=False)
     dag: Dag = field(init=False)
     executor: AbstractExecutor = field(init=False)
     artifact_name: str = field(default=datetime.now().strftime("%Y%m%d_%H:%M:%S"))
-    use_cache: bool = False
     cache_strategy: CacheInterface = field(default=None)
     _base_dir: str = field(default="state")
-    executor_type: str = field(default="")
 
     def __post_init__(self) -> None:
         """Create a DAG object after initialization."""
@@ -40,7 +39,7 @@ class Workflow(object):
         latest_file = self.get_latest_run_tasks(self._base_dir)
 
         # check if cache strategy is provided and use_cache flag is enabled
-        if self.cache_strategy and self.use_cache:
+        if self.cache_strategy and self.settings["use_cache"]:
             logging.info("cache enabled, fetching latest file")
 
             # initialize artifact file name, set it to None by default
@@ -94,13 +93,13 @@ class Workflow(object):
                     f"collected tasks set {tasks_names} using {nb_workers} threads"
                 )
 
-                if self.executor_type == "ThreadExecutor":
+                if self.settings["executor"] == "ThreadExecutor":
                     self.thread_run(tasks, nb_workers)
-                if self.executor_type == "AsyncExecutor":
+                if self.settings["executor"] == "AsyncExecutor":
                     self.async_run(tasks, nb_workers, loop)
 
                 # If caching is enabled, dump the current task artifact
-                if self.cache_strategy and self.use_cache:
+                if self.cache_strategy and self.settings["use_cache"]:
                     self.cache_strategy.dump(
                         artifact=self.tasks,
                         path=f"{self._base_dir}/task_{self.artifact_name}.pkl",
