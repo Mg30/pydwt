@@ -5,6 +5,7 @@ from datetime import datetime
 import importlib
 import sys
 import logging
+import yaml
 
 
 @dataclass
@@ -20,23 +21,15 @@ class Project(object):
             datefmt="%m/%d/%Y %I:%M:%S %p",
             level=logging.INFO,
         )
+        self._load_settings()
 
     @property
     def project_name(self):
-        self._load_settings()
-        return getattr(self._settings_module, "PROJECT_NAME")
-
-    @property
-    def executor(self):
-        return getattr(self._settings_module, "EXECUTOR")
-
-    @property
-    def use_cache(self):
-        return getattr(self._settings_module, "USE_CACHE")
+        return self._settings["project_name"]
 
     @property
     def cache_strategy(self):
-        cache_strategy_name = getattr(self._settings_module, "CACHE_STRATEGY")
+        cache_strategy_name = self._settings["cache_strategy"]
         cache_module = importlib.import_module("pydbt.core.cache")
         cache_strategy_class = getattr(cache_module, cache_strategy_name)
         return cache_strategy_class
@@ -50,12 +43,10 @@ class Project(object):
         self._create_settings(project_name)
 
     def _init_workflow(self):
+        Workflow.settings = self._settings
         self._import_all_models()
-
         self._workflow = Workflow(
             cache_strategy=self.cache_strategy,
-            use_cache=self.use_cache,
-            executor_type=self.executor,
         )
 
     def run(self):
@@ -65,7 +56,7 @@ class Project(object):
     def export_dag(self):
         self._init_workflow()
         dag_file_name = os.path.join(
-            self.project_name,
+            self._settings["project_name"],
             self.dags_folder,
             f'dag_{datetime.now().strftime("%Y%m%d_%H:%M:%S")}',
         )
@@ -92,20 +83,20 @@ class Project(object):
             os.makedirs(dag_folder)
 
     def _load_settings(self):
-        self._settings_module = importlib.import_module(name="settings")
+        with open("settings.yaml", "r") as file:
+            self._settings = yaml.safe_load(file)
 
     def _create_settings(self, project_name):
-        settings_projects = os.path.join("settings.py")
+        settings_projects = os.path.join("settings.yml")
+        settings = {
+            "project_name": project_name,
+            "use_cache": True,
+            "executor": "ThreadExecutor",
+            "cache_strategy": "LocalCache",
+        }
         if not os.path.exists(settings_projects):
             with open(settings_projects, "w") as file:
-                file.write(
-                    f"""
-PROJECT_NAME = "{project_name}"
-EXECUTOR = "ThreadExecutor"
-USE_CACHE = True
-CACHE_STRATEGY = "LocalCache"
-"""
-                )
+                yaml.safe_dump(settings, file)
 
     def _create_tasks_example(self, project_name):
         models_project = os.path.join(project_name, self.models_folder)
