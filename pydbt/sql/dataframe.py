@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import List, Literal
-from sqlalchemy import select
-from pydbt.core.materializations import CreateTableAs
+from sqlalchemy import select, join
+from pydbt.core.materializations import CreateTableAs, CreateViewAs
 
 
 class DataFrame(dict):
@@ -113,10 +113,15 @@ class DataFrame(dict):
         print(conn.execute(q).fetchall())
         conn.close()
 
-    def materialize_as_table(self, name):
+    def materialize(self, name, as_: Literal["view", "table"]):
         self._stmt = select(self._stmt)
-        ctas = CreateTableAs(name, self._stmt)
-        q = str(ctas.compile(bind=self._engine))
+
+        if as_ == "view":
+            materialization = CreateViewAs(name, self._stmt)
+        elif as_ == "table":
+            materialization = CreateTableAs(name, self._stmt)
+
+        q = materialization.compile(bind=self._engine)
         conn = self._engine.connect()
         conn.execute(q)
         conn.close()
