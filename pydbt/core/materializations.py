@@ -29,7 +29,42 @@ def visit_create_table_as(element: Any, compiler: Any, **kw: str) -> str:
     :rtype: str
     """
     return """
-CREATE TABLE {}
+CREATE OR REPLACE TABLE {}
+AS
+{}
+""".format(
+        element.name,
+        compiler.process(element.select_query, literal_binds=True),
+    )
+
+
+class CreateViewAs(Executable, ClauseElement):
+    """_summary_
+    :param Executable: _description_
+    :type Executable: _type_
+    :param ClauseElement: _description_
+    :type ClauseElement: _type_
+    """
+
+    inherit_cache = True
+
+    def __init__(self, name: str, select_query: Selectable):
+        self.name = name
+        self.select_query = select_query
+
+
+@compiles(CreateViewAs)
+def visit_create_view_as(element: Any, compiler: Any, **kw: str) -> str:
+    """_summary_
+    :param element: _description_
+    :type element: Any
+    :param compiler: _description_
+    :type compiler: Any
+    :return: _description_
+    :rtype: str
+    """
+    return """
+CREATE OR REPLACE VIEW {}
 AS
 {}
 """.format(
