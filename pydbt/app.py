@@ -1,8 +1,13 @@
 import typer
-from pydbt.core.project import Project
+import yaml
+from pydbt.core.containers import Container
 
 app = typer.Typer()
-project_handler = Project()
+container = Container()
+container.config.from_yaml("settings.yml", loader=yaml.UnsafeLoader)
+container.wire(packages=["pydbt.core"])
+
+project_handler = container.project_factory()
 
 
 @app.command()
@@ -17,8 +22,12 @@ def run():
 
 @app.command()
 def export_dag():
+    container.init_resources()
     project_handler.export_dag()
 
 
 if __name__ == "__main__":
     app()
+
+
+
