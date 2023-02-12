@@ -5,7 +5,10 @@ from pydbt.core.schedule import ScheduleInterface, Daily
 import functools
 import logging
 from datetime import datetime, timedelta
-
+from pydbt.core.containers import Container
+from dependency_injector.wiring import  Provide
+from pydbt.core.containers import Container
+from typing import Dict
 
 @dataclass
 class Task:
@@ -26,6 +29,9 @@ class Task:
     name: str = field(init=False)
     _next_run: datetime = field(init=False, default=None)
     _task: Callable = field(init=False, default=None)
+    workflow : Workflow = Provide[Container.workflow_factory]
+    config : Dict = Provide[Container.config]
+    sources : Dict = Provide[Container.datasources]
 
     @property
     def depends_on_name(self):
@@ -60,13 +66,12 @@ class Task:
         self._task = func
         self.name = f"{func.__module__}.{func.__name__}"
 
-        task_config = Workflow.settings[f"{func.__module__}.{func.__name__}"]
         logging.info(f"registring task {self.name}")
-        Workflow.tasks.append(self)
+        self.workflow.tasks.append(self)
 
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            return func(*args, **kwargs)
+        def wrapper(*args,**kwargs):
+            return func(*args,**kwargs)
 
         return wrapper
 
@@ -107,9 +112,9 @@ class Task:
         self._count_call = 0
         for n in range(self.retry + 1):
             try:
+                task_config = self.config["tasks"][self.name]
                 self._count_call += 1
-                task_settings = Workflow.settings[self.name]
-                self._task(task_settings)
+                self._task(task_config,self.sources)
                 break
             except Exception as e:
                 if n == self.retry:
