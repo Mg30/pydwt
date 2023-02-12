@@ -36,6 +36,6 @@ class LocalCache(CacheInterface):
         with open(self.artifact_name, "rb") as cache:
             self.artifact = pickle.load(cache)
 
-    def dump(self,artifact, path):
+    def dump(self, artifact, path):
         with open(path, "wb") as file:
             pickle.dump(artifact, file)
