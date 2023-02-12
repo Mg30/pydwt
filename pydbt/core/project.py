@@ -71,7 +71,7 @@ class Project(object):
         settings = {
             "project": {
                 "name": project_name,
-                "use_cache": True,
+                "use_cache": False,
                 "executor": "ThreadExecutor",
                 "cache_strategy": "LocalCache",
             },
