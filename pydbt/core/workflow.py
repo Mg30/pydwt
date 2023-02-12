@@ -22,10 +22,10 @@ class Workflow(object):
         executor (ThreadExecutor): Thread executor for running tasks in parallel.
     """
 
-    tasks: ClassVar[List] = field(default=[], init=False)
-    settings: ClassVar[dict] = field(default={}, init=False)
+    tasks: List = field(default_factory=list, init=False)
     dag: Dag = field(init=False)
-    executor: AbstractExecutor = field(init=False)
+    executor: str
+    use_cache: bool = field(default=False)
     artifact_name: str = field(default=datetime.now().strftime("%Y%m%d_%H:%M:%S"))
     cache_strategy: CacheInterface = field(default=None)
     _base_dir: str = field(default="state")
@@ -39,7 +39,7 @@ class Workflow(object):
         latest_file = self.get_latest_run_tasks(self._base_dir)
 
         # check if cache strategy is provided and use_cache flag is enabled
-        if self.cache_strategy and self.settings["use_cache"]:
+        if self.cache_strategy and self.use_cache:
             logging.info("cache enabled, fetching latest file")
 
             # initialize artifact file name, set it to None by default
@@ -93,13 +93,13 @@ class Workflow(object):
                     f"collected tasks set {tasks_names} using {nb_workers} threads"
                 )
 
-                if self.settings["executor"] == "ThreadExecutor":
+                if self.executor == "ThreadExecutor":
                     self.thread_run(tasks, nb_workers)
-                if self.settings["executor"] == "AsyncExecutor":
+                if self.executor == "AsyncExecutor":
                     self.async_run(tasks, nb_workers, loop)
 
                 # If caching is enabled, dump the current task artifact
-                if self.cache_strategy and self.settings["use_cache"]:
+                if self.cache_strategy and self.use_cache:
                     self.cache_strategy.dump(
                         artifact=self.tasks,
                         path=f"{self._base_dir}/task_{self.artifact_name}.pkl",
@@ -107,12 +107,12 @@ class Workflow(object):
         loop.close()
 
     def thread_run(self, tasks, nb_workers):
-        self.executor = ThreadExecutor(tasks, nb_workers=nb_workers)
-        self.executor.run()
+        executor = ThreadExecutor(tasks, nb_workers=nb_workers)
+        executor.run()
 
     def async_run(self, tasks, nb_workers, loop):
-        self.executor = AsyncExecutor(tasks, nb_workers=nb_workers)
-        loop.run_until_complete(self.executor.run())
+        executor = AsyncExecutor(tasks, nb_workers=nb_workers)
+        loop.run_until_complete(executor.run())
 
     def export_dag(self, path: str) -> None:
         """Export the DAG to a PNG image file.
