@@ -15,7 +15,6 @@ class Dag(object):
         self.tasks = tasks
         self.graph = nx.DiGraph()
         self.source = "s"
-        self.build_dag()
 
     @property
     def levels(self) -> Dict[int, List[int]]:
@@ -30,6 +29,7 @@ class Dag(object):
     def build_dag(self) -> None:
         """Build the directed acyclic graph from the tasks and their dependencies."""
         edges = []
+
         tasks_names = [t.name for t in self.tasks]
         for index, _ in enumerate(tasks_names):
             task = self.tasks[index]
