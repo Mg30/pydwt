@@ -29,20 +29,25 @@ class Dag(object):
     def build_dag(self) -> None:
         """Build the directed acyclic graph from the tasks and their dependencies."""
         edges = []
+        node_names = {}
 
-        tasks_names = [t.name for t in self.tasks]
-        for index, _ in enumerate(tasks_names):
-            task = self.tasks[index]
-            self.graph.add_node(index, name=task.name)
+        for i, task in enumerate(self.tasks):
+            node_names[i] = task.name
+            self.graph.add_node(i, name=task.name)
 
             if task.depends_on:
-                task_edge = [
-                    (tasks_names.index(f"{func.__module__}.{func.__name__}"), index)
-                    for func in task.depends_on
-                ]
-                edges = [*edges, *task_edge]
+                for dep_func in task.depends_on:
+                    dep_name = f"{dep_func.__module__}.{dep_func.__name__}"
+                    if dep_name in node_names.values():
+                        dep_index = next(index for index, name in node_names.items() if name == dep_name)
+                    else:
+                        dep_index = len(node_names)
+                        node_names[dep_index] = dep_name
+                        self.graph.add_node(dep_index, name=dep_name)
+
+                    edges.append((dep_index, i))
             else:
-                edges.append((self.source, index))
+                edges.append((self.source, i))
 
         self.graph.add_edges_from(edges)
 
