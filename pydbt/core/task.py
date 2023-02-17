@@ -1,8 +1,9 @@
 import functools
 import logging
+import traceback
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
 from typing import Callable, Dict, List
 
 from dependency_injector.wiring import Provide
@@ -114,14 +115,13 @@ class Task(BaseTask):
         self._count_call = 0
         for n in range(self.retry + 1):
             try:
-                task_config = self.config["tasks"][self.name]
                 self._count_call += 1
-                self._task(task_config, self.sources)
+                self._task()
                 break
             except Exception as e:
                 if n == self.retry:
                     logging.error(
-                        f"task  {self.name} failed after {self.retry} attempts: {e}"
+                        f"task  {self.name} failed after {self.retry} attempts: {traceback.print_exc()}"
                     )
 
                 else:
@@ -165,7 +165,7 @@ class AsyncTask(BaseTask):
             except Exception as e:
                 if n == self.retry:
                     logging.error(
-                        f"task  {self.name} failed after {self.retry} attempts: {e}"
+                        f"task  {self.name} failed after {self.retry} attempts: {traceback.print_exc()}"
                     )
 
                 else:
