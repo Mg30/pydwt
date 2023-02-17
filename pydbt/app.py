@@ -1,11 +1,15 @@
 import typer
 import yaml
 from pydbt.core.containers import Container
+from dependency_injector.wiring import register_loader_containers
+import sys
+import os
 
 app = typer.Typer()
 container = Container()
 container.config.from_yaml("settings.yml", loader=yaml.UnsafeLoader)
-container.wire(packages=["pydbt.core"])
+sys.path.append(os.getcwd())
+register_loader_containers(container)
 
 project_handler = container.project_factory()
 
