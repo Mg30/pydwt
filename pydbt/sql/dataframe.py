@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import List, Literal
 from sqlalchemy import select, join
-from pydbt.core.materializations import CreateTableAs, CreateViewAs
+from pydbt.sql.materializations import CreateTableAs, CreateViewAs
 
 
 class DataFrame(dict):
@@ -94,9 +94,23 @@ class DataFrame(dict):
             grouped = select(*args).group_by(*args).cte()
         return DataFrame(grouped, self._engine)
 
-    def join(
-        self, other: DataFrame, expr, how=Literal["inner", "left", "right", "full"]
-    ):
+    def join(self, other: "DataFrame", expr, how: str = "inner"):
+        """
+        Join this DataFrame with another DataFrame.
+
+        Args:
+            other (DataFrame): The other DataFrame to join with.
+            expr: The join expression.
+            how (str): The type of join. Can be "inner", "left", "right", or "full".
+
+        Returns:
+            DataFrame: A new DataFrame with the result of the join.
+        """
+        # Check that the join type is valid
+        if how not in ["inner", "left", "right", "full"]:
+            raise ValueError(f"Unsupported join type {how}.")
+        
+        # Perform the join operation
         if how == "left":
             stmt = select(join(self._stmt, other._stmt, expr, isouter=True))
         elif how == "right":
@@ -105,22 +119,43 @@ class DataFrame(dict):
             stmt = select(join(self._stmt, other._stmt, expr, full=True))
         else:
             stmt = select(join(self._stmt, other._stmt, expr))
+        
+        # Return the result as a new DataFrame
         return DataFrame(stmt.cte(), self._engine)
 
     def show(self):
+        """
+        Print the first 20 rows of the DataFrame.
+        """
         conn = self._engine.connect()
         q = select(self._stmt).limit(20)
         print(conn.execute(q).fetchall())
         conn.close()
 
-    def materialize(self, name, as_: Literal["view", "table"]):
+    def materialize(self, name: str, as_: Literal["view", "table"]) -> None:
+        """
+        Materialize the query as a table or view in the database.
+
+        Args:
+            name (str): The name of the table or view to create.
+            as_ (Literal["view", "table"]): The type of object to create.
+
+        Raises:
+            ValueError: If an unsupported materialization type is specified.
+
+        """
+        # Convert the statement to a SELECT statement
         self._stmt = select(self._stmt)
 
         if as_ == "view":
             materialization = CreateViewAs(name, self._stmt)
         elif as_ == "table":
             materialization = CreateTableAs(name, self._stmt)
+        else:
+            # Raise an error if an unsupported materialization type is specified
+            raise ValueError(f"Unsupported materialization type: {as_}")
 
+        # Execute the materialization query
         q = materialization.compile(bind=self._engine)
         conn = self._engine.connect()
         conn.execute(q)
