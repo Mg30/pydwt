@@ -24,7 +24,6 @@ class Workflow(object):
     tasks: List = field(default_factory=list, init=False)
     dag: Dag = field(init=False)
     executor: str
-    use_cache: bool = field(default=False)
     artifact_name: str = field(default=datetime.now().strftime("%Y%m%d_%H:%M:%S"))
     _base_dir: str = field(default="state")
 
