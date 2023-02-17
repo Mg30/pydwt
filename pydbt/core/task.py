@@ -27,9 +27,7 @@ class BaseTask(ABC):
     depends_on: List[Callable] = field(default_factory=list)
     runs_on: ScheduleInterface = field(default_factory=Daily)
     retry: int = 0
-    ttl_minutes: int = 0
     name: str = field(init=False)
-    _next_run: datetime = field(init=False, default=None)
     _task: Callable = field(init=False, default=None)
     workflow: Workflow = Provide[Container.workflow_factory]
     config: Dict = Provide[Container.config]
@@ -46,20 +44,6 @@ class BaseTask(ABC):
     @property
     def runs_on_name(self):
         return str(type(self.runs_on).__name__)
-
-    @property
-    def is_ttl_elapsed(self):
-        return self._next_run < datetime.now()
-
-    def set_next_run(self):
-        """
-        Set the time for the next run of this task.
-        """
-        now = datetime.now()
-        self._next_run = now + timedelta(minutes=self.ttl_minutes)
-        logging.info(
-            f"task {self.name}: found ttl definition next run: { self._next_run.strftime('%Y%m%d_%H:%M:%S')}"
-        )
 
     def __call__(self, func: Callable):
         """
@@ -83,7 +67,6 @@ class BaseTask(ABC):
                 set(self.depends_on_name) == set(other.depends_on_name)
                 and self.runs_on_name == other.runs_on_name
                 and self.retry == other.retry
-                and self.ttl_minutes == other.ttl_minutes
                 and self.name == other.name
             )
         return False
@@ -125,18 +108,7 @@ class Task(BaseTask):
             return
 
         logging.info(f"task {self.name} is scheduled to be run")
-
-        if self.ttl_minutes > 0 and not self._next_run:
-            self._run_task_with_retry()
-            self.set_next_run()
-        elif self._next_run:
-            if not self.is_ttl_elapsed:
-                logging.info(f"task {self.name}: ttl not elasped: skipping")
-            else:
-                self._run_task_with_retry()
-                self.set_next_run()
-        else:
-            self._run_task_with_retry()
+        self._run_task_with_retry()
 
     def _run_task_with_retry(self):
         self._count_call = 0
@@ -181,18 +153,7 @@ class AsyncTask(BaseTask):
             return
 
         logging.info(f"task {self.name} is scheduled to be run")
-
-        if self.ttl_minutes > 0 and not self._next_run:
-            await self._run_task_with_retry()
-            self.set_next_run()
-        elif self._next_run:
-            if not self.is_ttl_elapsed:
-                logging.info(f"task {self.name}: ttl not elasped: skipping")
-            else:
-                await self._run_task_with_retry()
-                self.set_next_run()
-        else:
-            await self._run_task_with_retry()
+        await self._run_task_with_retry()
 
     async def _run_task_with_retry(self):
         self._count_call = 0
