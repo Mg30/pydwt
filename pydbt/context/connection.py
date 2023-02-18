@@ -22,6 +22,7 @@ class Connection(object):
     name: str
     password: str
     user: str
+    port:int
     sql_alchemy_driver: str
     engine = None
 
