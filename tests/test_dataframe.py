@@ -5,7 +5,6 @@ from sqlalchemy import (
     Column,
     Integer,
     String,
-    select,
     literal_column,
     MetaData,
     func,
@@ -114,7 +113,7 @@ def test_dataframe_join(session):
     df2 = df2.with_column_renamed("name","product_name")
     df2 = df2.with_column_renamed("user_id","user_id_")
     df3 = df1.join(df2, (df1.user_id == df2.user_id_))
-    
+
     df3.select(df3.age)
 
     assert df3.collect()
