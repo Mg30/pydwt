@@ -46,7 +46,6 @@ class Container(containers.DeclarativeContainer):
     workflow_factory = providers.ThreadSafeSingleton(
         Workflow,
         executor=config.project.executor,
-        use_cache=config.project.use_cache,
     )
 
     # Factory provider that provides the project instance
