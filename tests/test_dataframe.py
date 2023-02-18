@@ -1,4 +1,3 @@
-from typing import List, Dict, Any
 from sqlalchemy import (
     create_engine,
     Table,
@@ -10,7 +9,6 @@ from sqlalchemy import (
     func,
     ForeignKey,
 )
-from pydbt.sql.dataframe import DataFrame
 from pydbt.sql.session import Session
 import pytest
 
