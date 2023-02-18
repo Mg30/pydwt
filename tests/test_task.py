@@ -1,9 +1,11 @@
 from pydbt.core.task import Task
 import pytest
+import unittest.mock
 from pydbt.core.containers import Container
 
 
 container = Container()
+container.database_client.override(unittest.mock.Mock())
 container.wire(modules=["pydbt.core.task"])
 
 @pytest.fixture

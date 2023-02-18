@@ -1,13 +1,13 @@
-import networkx as nx
 from pydbt.core.task import Task
 from pydbt.core.dag import Dag
 import pytest
-import functools
+import unittest.mock
 
 from pydbt.core.containers import Container
 
 
 container = Container()
+container.database_client.override(unittest.mock.Mock())
 container.wire(modules=["pydbt.core.task"])
 
 
