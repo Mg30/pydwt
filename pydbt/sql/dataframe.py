@@ -69,6 +69,21 @@ class DataFrame(dict):
         """
         return DataFrame(select(self._stmt, expr.label(name)).cte(), self._engine)
 
+
+    def with_column_renamed(self, old_name: str, new_name: str) -> "DataFrame":
+        """Create a new DataFrame with the given column renamed.
+
+        Args:
+            old_name (str): Name of the column to be renamed.
+            new_name (str): New name of the column.
+
+        Returns:
+            DataFrame: New DataFrame with the given column renamed.
+        """
+        cols = [self[old_name].label(new_name) if col == old_name else self[col] for col in self.columns ]
+        stmt = select(*cols)
+        return DataFrame(stmt.cte(), self._engine)
+
     def group_by(self, *args, **kwargs) -> DataFrame:
         """Create a new DataFrame that has grouped rows.
 
@@ -160,3 +175,16 @@ class DataFrame(dict):
         conn = self._engine.connect()
         conn.execute(q)
         conn.close()
+
+
+    def collect(self) -> List[dict]:
+        """
+        Retrieve all the data in the dataframe as a list.
+
+        Returns:
+            List[dict]: A list of dictionaries, where each dictionary represents a row in the dataframe.
+        """
+        conn = self._engine.connect()
+        result = conn.execute(select(self._stmt)).fetchall()
+        conn.close()
+        return result

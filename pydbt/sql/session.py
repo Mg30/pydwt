@@ -3,7 +3,7 @@ from pydbt.sql.dataframe import DataFrame
 
 
 class Session:
-    def __init__(self, engine, schema: str):
+    def __init__(self, engine, schema: str = None):
         """Initialize a new Session object.
 
         Args:
@@ -11,7 +11,10 @@ class Session:
             schema (str): The schema of the database.
         """
         self._engine = engine
-        self._metadata = MetaData(schema=schema)
+        if schema:
+            self._metadata = MetaData(schema=schema)
+        else:
+            self._metadata = MetaData()
 
     def table(self, name: str) -> DataFrame:
         """Create a new DataFrame object from the given table name.
