@@ -1,11 +1,11 @@
 from pydbt.core.task import Task
 import pytest
-import unittest.mock
+from unittest import mock
 from pydbt.core.containers import Container
-
+from pydbt.core.schedule import Monthly
 
 container = Container()
-container.database_client.override(unittest.mock.Mock())
+container.database_client.override(mock.Mock())
 container.wire(modules=["pydbt.core.task"])
 
 @pytest.fixture
@@ -37,6 +37,19 @@ def test_task_not_eq(fake_task_one, fake_task_two):
     assert task != task2
 
 def test_task_no_retry_run_once(fake_task_one):
+    task = Task()
+    task(fake_task_one)
+    task.run()
+    assert task._count_call == 1
+
+
+def test_task_not_scheduled(fake_task_one):
+    task = Task(runs_on=Monthly())
+    task(fake_task_one)
+    task.run()
+    assert task._count_call == 0
+
+def test_task_is_scheduled(fake_task_one):
     task = Task()
     task(fake_task_one)
     task.run()

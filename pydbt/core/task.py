@@ -30,6 +30,7 @@ class BaseTask(ABC):
     retry: int = 0
     name: str = field(init=False)
     _task: Callable = field(init=False, default=None)
+    _count_call: int = 0
     workflow: Workflow = Provide[Container.workflow_factory]
     config: Dict = Provide[Container.config]
     sources: Dict = Provide[Container.datasources]
