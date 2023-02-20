@@ -1,3 +1,4 @@
+from typing import Dict
 import os
 import sys
 
@@ -7,37 +8,42 @@ from dependency_injector.wiring import register_loader_containers
 
 from pydbt.core.containers import Container
 
+
+sys.path.append(os.getcwd())
 app = typer.Typer()
 container = Container()
-
-# Load configuration from YAML file
-with open("settings.yml") as f:
-    config = yaml.safe_load(f)
-container.config.from_dict(config)
-
-# Register container and dependencies
-sys.path.append(os.getcwd())
 register_loader_containers(container)
 
-# Get a project handler instance from the container
-project_handler = container.project_factory()
+
+def load_config(path: str) -> Dict:
+    config = None
+    with open(path) as f:
+        config = yaml.safe_load(f)
+    return config
 
 # Define command-line interface using Typer
 @app.command()
 def new(project_name: str):
     """Create a new PyDBT project."""
+    project_handler = container.project_factory()
     project_handler.new(project_name)
 
 
 @app.command()
 def run():
     """Run the workflow DAG for the current project."""
+    config = load_config(path="settings.yml")
+    container.config.from_dict(config)
+    project_handler = container.project_factory()
     project_handler.run()
 
 
 @app.command()
 def export_dag():
     """Export the workflow DAG for the current project."""
+    config = load_config(path="settings.yml")
+    container.config.from_dict(config)
+    project_handler = container.project_factory()
     project_handler.export_dag()
 
 
