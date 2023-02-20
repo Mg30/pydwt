@@ -29,6 +29,7 @@ class Container(containers.DeclarativeContainer):
         config.connection.name,
         config.connection.password,
         config.connection.user,
+        config.connection.port,
         config.connection.sql_alchemy_driver,
     )
 

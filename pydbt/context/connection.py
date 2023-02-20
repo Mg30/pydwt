@@ -1,5 +1,5 @@
-from dataclasses import dataclass
-from sqlalchemy import create_engine
+from dataclasses import dataclass, field
+from sqlalchemy import create_engine, Engine
 from urllib.parse import quote_plus
 
 
@@ -22,9 +22,9 @@ class Connection(object):
     name: str
     password: str
     user: str
-    port:int
+    port: int
     sql_alchemy_driver: str
-    engine = None
+    engine: Engine = field(init=False, default=None)
 
     def __post_init__(self):
         """Initialize the connection object and create the database engine."""
