@@ -62,16 +62,6 @@ class BaseTask(ABC):
 
         return wrapper
 
-    def __eq__(self, other):
-        if isinstance(other, BaseTask):
-            return (
-                set(self.depends_on_name) == set(other.depends_on_name)
-                and self.runs_on_name == other.runs_on_name
-                and self.retry == other.retry
-                and self.name == other.name
-            )
-        return False
-
     @abstractmethod
     def run(self):
         """
@@ -110,6 +100,16 @@ class Task(BaseTask):
 
         logging.info(f"task {self.name} is scheduled to be run")
         self._run_task_with_retry()
+
+    def __eq__(self, other):
+        if isinstance(other, Task):
+            return (
+                set(self.depends_on_name) == set(other.depends_on_name)
+                and self.runs_on_name == other.runs_on_name
+                and self.retry == other.retry
+                and self.name == other.name
+            )
+        return False
 
     def _run_task_with_retry(self):
         self._count_call = 0
@@ -154,6 +154,16 @@ class AsyncTask(BaseTask):
 
         logging.info(f"task {self.name} is scheduled to be run")
         await self._run_task_with_retry()
+
+    def __eq__(self, other):
+        if isinstance(other, AsyncTask):
+            return (
+                set(self.depends_on_name) == set(other.depends_on_name)
+                and self.runs_on_name == other.runs_on_name
+                and self.retry == other.retry
+                and self.name == other.name
+            )
+        return False
 
     async def _run_task_with_retry(self):
         self._count_call = 0

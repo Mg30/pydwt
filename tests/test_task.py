@@ -41,3 +41,12 @@ def test_task_no_retry_run_once(fake_task_one):
     task(fake_task_one)
     task.run()
     assert task._count_call == 1
+
+def test_task_eq(fake_task_one):
+    task = Task(retry=2)
+    task(fake_task_one)
+
+    task2 = Task(retry=2)
+    task2(fake_task_one)
+
+    assert task == task2
