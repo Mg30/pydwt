@@ -1,242 +1,167 @@
 # PyDBT
-PyDBT is a data processing tool written in python. It provides an interface on top of SQLAlchemy core version 1.4 and greater, task dependencies handling, task retry on error, and task caching.
+
+The pydbt library provides a set of tools for orchestrating tasks of data processing in a directed acyclic graph (DAG). This DAG is composed of tasks that have dependencies between them and can be executed in parallel or sequentially, depending on their dependencies.
+
+In this document, we will provide a brief explanation of the main modules of the pydbt library, which are:
+
+* `session.py`: module for interacting with a database and creating DataFrame objects to manipulate data.
+* `dataframe.py`: module for defining a DataFrame class for working with data.
+* `task.py`: module for defining tasks in the DAG.
+* `dag.py`: module for creating and traversing the DAG.
+* `workflow.py`: module for running the DAG.
 
 
-## Usage
+## Session
+The `session.py` module is responsible for interacting with a database and creating DataFrame objects to manipulate data. To use this module, you need to create an instance of the Session class, passing an SQLAlchemy engine object and the schema of the database (if it has one). Then, you can use the table method to create a DataFrame object from a table in the database.
 
-## Create the models Directory:
-The first step in using the Task class and the DataFrame class is to create a models directory in your framework. This directory will contains file with you processing logic. In this file functions decorated with the `@Task` will be marked as task to be processed.
+Here is an example of how to create a Session object and use the table method to create a DataFrame object:
 
-## Create a new  processing file
-Start by creating a file  `some_processing.py` under `models/`
-
-
-## Create a new session
-First you need a engine and a session to interact with the db: 
 ```python
 from sqlalchemy import create_engine
-from sql.session import Session
+from pydbt.sql.session import Session
 
-engine = create_engine('postgres:///<con>')
+engine = create_engine("postgresql://user:password@localhost/dbname")
+session = Session(engine, schema="my_schema")
 
-# create a session with the engine and schema
-session = Session(engine, schema='example_schema')
+df = session.table("my_table")
 ```
 
-the session object will return a `DataFrame` Object. 
-The DataFrame class is an interface that allows you to manipulate data using SQL-like operations on top of SQLAlchemy core.
+## DataFrame
 
-### Write code with DataFrame wrapper
+The `dataframe.py` module defines a DataFrame class for working with data. A DataFrame object is essentially a table with labeled columns and rows. You can use it to perform operations such as selecting, filtering, grouping, and aggregating data.
 
-Here some code snippet that show how to use DataFrame
+You can also materialize a DataFrame as a table or view in the database by calling the materialize method.
+
+Here is an example of how to create a DataFrame object and perform some operations on it:
 
 ```python
+from pydbt.sql.session import Session
+from pydbt.sql.dataframe import DataFrame
 
-df_a = session.table("tableA")
-df_b = session.table("tableB")
+session = Session(engine, schema="my_schema")
 
-df_joined = df_a.join(
-        df_b,
-        (df_a.key == df_b.key)
-        & (df_a.date == df_b.date_right),
-    )
+df = session.table("my_table")
 
-df_joined.select(df_joined.key, df_joined.date_right).show() # trigger connection
+# select some columns
+df = df.select("col1", "col2")
+
+# filter rows based on a condition
+df = df.where(df.col1 > 10)
+
+# group by a column and aggregate another column
+df = df.group_by(df.col2, agg={"col1": (func.sum, "sum_col1")})
+
+# show the resulting DataFrame
+df.materialize("new_table", as_="table")
 
 ```
+## Task
 
+The `task.py` module defines a Task class for representing a task in the DAG. A Task object has a run method that is responsible for executing the task. You can also define the task's dependencies, schedule, and other parameters when creating the object.
 
-## Decorate Your Functions with `@Task`
-
-Then you can start writing functions that you wrap you processing logic. 
-
-The function you write do **NOT** need to use the `DataFrame` class. This class is just
-an helper so if you want to write plain SQL alchemy core code it will work too.
-
-The `@Task` decorator will allow your framework to identify and load these functions as tasks. To do this, you simply need to decorate each function with the @Task decorator.
+To create a Task object, you can use the `@Task` decorator and define the run method. Here is an example of how to create a Task object:
 
 ```python
-
-from core.task import Task
+from pydbt.core.task import Task
 
 @Task()
-def processing():
-    df_a = session.table("tableA")
-    df_b = session.table("tableB")
-    df_joined = df_a.join(
-            df_b,
-            (df_a.key == df_b.key)
-            & (df_a.date == df_b.date_right),
-        )
-    df_joined.select(df_joined.key, df_joined.date_right)
-    df_joined.write("new_table")
-
-```
-
-You can specify dependencies between tasks 
-
-
-```python
-
-
-@Task()
-def processing():
-    df_a = session.table("tableA")
-    df_b = session.table("tableB")
-    df_joined = df_a.join(
-            df_b,
-            (df_a.key == df_b.key)
-            & (df_a.date == df_b.date_right),
-        )
-    df_joined.select(df_joined.key, df_joined.date_right)
-    df_joined.write("new_table")
-
-@Task(depends_on=[processing])
-def child_task():
-    df = session.table("new_table")
-    df.show()
-```
-Here is a more complete example that you can find in the `models`directory
-
-```python
-from sql.session import Session
-from sqlalchemy import func, case
-from core.task import Task
-from core.schedule import Monthly
-from connections.postgresql import get_engine
-
-engine = get_engine()
-session = Session(engine=engine,schema="public")
-
-
-@Task(ttl_minutes=60)
 def task_one():
-    df = session.table("predictions")
-    df.show()
+    df = session.table("features")
+    df = df.with_column("new_column", case((df.preds == "hw", "W")))
+    df.materialize("new_table", as_="table")
 
 
 @Task(depends_on=[task_one])
 def task_two():
-    df = session.table("predictions")
-    df = df.where((df.matchDate == "2022-12-30"))
+    df = session.table("new_table")
+    df = df.where((df.new_column == "W"))
     df = df.with_column("new_column", case((df.preds == "hw", "W")))
-    df = df.group_by(df.matchDate, df.preds, agg={"preds": (func.count, "count_preds")})
     df.show()
 
+```
+
+## Create a new PyDBT project:
+
+`pydbt new <my_project>`
+
+This command will create a new project with the name "my_project" and the required file structure.
+```
+my_project/
+    models/
+        example.py
+    dags/
+settings.yml
+```
+
+* `project_name/models`: where you will put your tasks
+* `project_name/dags/`: where the corresponding dag PNG file will be
+* `project_name/settings.yml`: a configuration file for your project. This file includes the configuration options for your project, such as the path to your data directory.
+
+
+
+## Export the DAG
+
+`pydbt export-dag` 
+
+will export the current state of your dag in the `project_name/dags/` as PNG file with timestamp.
+
+## Run your project
+
+`pydbt run`
+
+will run the current state of your DAG. It will process the tasks in the DAG by level and parrelise
+it with the `ThreadExecutor`
+
+## Configuration of your PyDBT project
+
+The `settings.yml` file is a configuration file for your PyDBT project. It stores various settings such as the project name, database connection details, and DAG tasks.
+
+### connection
+The connection section contains the configuration details for connecting to the database. The available options are:
+
+* `db`: the name of the database
+* `host`: the hostname or IP address of the database server
+* `user`: the username for the database connection
+* `password`: the password for the database connection
+* `port`: the port number to use for the database connection
+* `sql_alchemy_driver`: the SQLAlchemy driver to use for the database connection
+
+### project
+The project section contains the project-related settings. The available options are:
+
+`name`: the name of the project
+`executor`: the executor to use for running the DAG. Available options are ThreadExecutor and AsyncExecutor.
+
+### tasks
+This section contains the configuration for each task defined in the PyDBT project.  
+
+Each task is identified by its name, and the configuration is stored as a dictionary.  
+
+The dictionary can contain any key-value pairs that the task implementation may need to use, but it must have a key named `materialize`.
+
+* The `materialize` key specifies how the task output should be stored. The value can be either `view` or `table`.
+The value of the materialize key determines whether the task output should be stored as a SQL view or a SQL table. If the value is view, the output is stored as a SQL view. If the value is table, the output is stored as a SQL table.
+
+Each task implementation can access its configuration by injecting the config argument and specifying Provide[Container.config.tasks.<task_name>]. The injected config argument is a dictionary containing the configuration for the specified task. 
+
+example :
+
+```python
+from pydbt.core.task import Task
+from dependency_injector.wiring import inject, Provide
+from pydbt.core.containers import Container
+
+@Task()
+@inject
+def task_one(config:dict = Provide[Container.config.tasks.task_one]):
+    print(config)
 
 @Task(depends_on=[task_one])
-def task_three():
-    df = session.table("predictions")
-    df = df.where((df.matchDate == "2022-12-31"))
-    df = df.with_column("new_column", case((df.preds == "hw", "W")))
-    df = df.group_by(df.matchDate, df.preds, agg={"preds": (func.count, "count_preds")})
-    df.show()
-
-
-@Task(depends_on=[task_three, task_two], runs_on=Monthly())
-def task_four():
-    df = session.table("predictions")
-    df = df.where((df.matchDate == "2022-12-31"))
-    df.show()
+def task_two():
+    print("somme processing")
 ```
+### sources
 
-Once registred tasks will be loaded and a DAG will be generated. you can export and visualize the dag using:
-
-`python app.py export-dag .`
-
-**Example** :   
-![alt](dag.png)
-
-The DAG allow the engine to process tasks with the same level of dependencies
-in paralell using the `core.executors.ThreadExecutor`
-
-Using this dag logs this :
-
-```
-INFO 02/03/2023 05:13:50 PM: registring task task_one
-INFO 02/03/2023 05:13:50 PM: registring task task_two
-INFO 02/03/2023 05:13:50 PM: registring task task_three
-INFO 02/03/2023 05:13:50 PM: registring task task_four
-INFO 02/03/2023 05:13:50 PM: registring task task_five
-INFO 02/03/2023 05:13:50 PM: cache enable fetch latest file
-INFO 02/03/2023 05:13:50 PM: using latest run task_20230203_16:58:57.pkl
-INFO 02/03/2023 05:13:50 PM: comparing tasks
-INFO 02/03/2023 05:13:50 PM: no added task
-INFO 02/03/2023 05:13:50 PM: task_one is equal to previous run keeping old task
-INFO 02/03/2023 05:13:50 PM: task_two is equal to previous run keeping old task
-INFO 02/03/2023 05:13:50 PM: task_three is equal to previous run keeping old task
-INFO 02/03/2023 05:13:50 PM: task_four is equal to previous run keeping old task
-INFO 02/03/2023 05:13:50 PM: task_five is equal to previous run keeping old task
-INFO 02/03/2023 05:13:50 PM: exploring dag level 1
-INFO 02/03/2023 05:13:50 PM: collected tasks set ['task_one'] using 1 threads
-INFO 02/03/2023 05:13:50 PM: task task_one is scheduled to be run
-INFO 02/03/2023 05:13:50 PM: task task_one: ttl not elasped: skipping
-INFO 02/03/2023 05:13:50 PM: exploring dag level 2
-INFO 02/03/2023 05:13:50 PM: collected tasks set ['task_two', 'task_three'] using 2 threads
-INFO 02/03/2023 05:13:50 PM: task task_two is scheduled to be run
-INFO 02/03/2023 05:13:50 PM: task task_three is scheduled to be run
-ERROR 02/03/2023 05:13:50 PM: task  task_three failed after 0 attempts: 'matchDate'
-[(datetime.date(2022, 12, 30), 'd', 2), (datetime.date(2022, 12, 30), 'aw', 1), (datetime.date(2022, 12, 30), 'hw', 3)]
-INFO 02/03/2023 05:13:50 PM: exploring dag level 3
-INFO 02/03/2023 05:13:50 PM: collected tasks set ['task_four'] using 1 threads
-INFO 02/03/2023 05:13:50 PM: task task_four is not scheduled to be run: skipping
-INFO 02/03/2023 05:13:50 PM: exploring dag level 4
-INFO 02/03/2023 05:13:50 PM: collected tasks set ['task_five'] using 1 threads
-INFO 02/03/2023 05:13:50 PM: task task_five is scheduled to be run
-INFO 02/03/2023 05:13:50 PM: retrying task task_five try number: 0
-INFO 02/03/2023 05:13:50 PM: retrying task task_five try number: 1
-INFO 02/03/2023 05:13:50 PM: retrying task task_five try number: 2
-INFO 02/03/2023 05:13:50 PM: retrying task task_five try number: 3
-INFO 02/03/2023 05:13:50 PM: retrying task task_five try number: 4
-ERROR 02/03/2023 05:13:50 PM: task  task_five failed after 5 attempts: Erreur
-```
-First the engine collect all the tasks it finds in the `models`directory and then 
-build a dag from their dependencies.
-If cache is enable it will compare old and new tasks definition.
-Then it will execute tasks with threads according to the level in the DAG.
-
-
-## API Reference
-
-### Task
-The Task class represents a task in the data processing pipeline and provides the following properties:
-
-* depends_on: A list of other tasks that this task depends on.
-* runs_on: A schedule for running this task. The default is Daily().
-* retry: The number of times to retry this task in case of failure.
-* ttl_minutes: Time-to-live in minutes. If a positive value is provided, the task will only run if the time elapsed since the last run is greater than or equal to this value.
-
-### DatFrame
-
-The DataFrame class is a representation of a database table in the form of a Spark dataframe. It is used to perform SQL operations on the table.
-
-The class constructor takes two arguments: base and engine. base is a SQLAlchemy query object that represents the SELECT statement to retrieve data from the database table. engine is a SQLAlchemy engine object that represents the database connection.
-
-The class provides methods for executing SQL operations, such as filtering and aggregating data, as well as for retrieving the resulting data in the form of a Spark dataframe.
-
-Here is an example of how to create a DataFrame object from SQL alchemy statement 
-
-```python
-
-from sqlalchemy import select, Table, MetaData
-from sql.dataframe import DataFrame
-
-engine = create_engine("sqlite:///example.db")
-metadata = MetaData(schema='example_schema')
-table = Table('example_table', metadata, autoload_with=engine)
-base = select(table).cte()
-df = DataFrame(base, engine)
-
-```
-Or you can use the `table`methode from `Session`
-
-```python
-
-session = Session(engine=engine,schema="public")
-df = session.table("predictions")
-df.show()
-
-```
-
+The sources section contains the database sources that can be used in the project. Each source must have a unique name and specify the schema and table to use for the source.
 ## License
 This project is licensed under GPL.
