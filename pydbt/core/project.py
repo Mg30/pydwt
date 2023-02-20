@@ -115,7 +115,7 @@ class Project:
                 "cache_strategy": "LocalCache",
             },
             "tasks": {
-                f"{project_name}.models.example.task_one": {"materialize": "view"}
+                "task_one": {"materialize": "view"}
             },
             "sources": {"one": {"table": "table_name", "schema": "some_schema"}},
             "connection": {
@@ -143,13 +143,17 @@ class Project:
                 f.write(
                     """
 from pydbt.core.task import Task
+from dependency_injector.wiring import inject, Provide
+from pydbt.core.containers import Container
 
 @Task()
-def task_one():
-    pass
+@inject
+def task_one(config:dict = Provide[Container.config.tasks.task_one]):
+    print(config)
 
 @Task(depends_on=[task_one])
 def task_two():
-    pass
+    print("somme processing")    
+
 """
                 )
