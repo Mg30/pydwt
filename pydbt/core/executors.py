@@ -6,7 +6,7 @@ import asyncio
 from abc import ABC
 
 
-class AbstractExecutor(object):
+class AbstractExecutor(ABC):
     tasks: List
     nb_workers: int
     _queue: Any
