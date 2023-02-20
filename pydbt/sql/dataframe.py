@@ -174,6 +174,7 @@ class DataFrame(dict):
         q = materialization.compile(bind=self._engine)
         conn = self._engine.connect()
         conn.execute(q)
+        conn.commit()
         conn.close()
 
 
