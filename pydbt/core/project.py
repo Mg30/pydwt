@@ -15,34 +15,34 @@ from pydbt.core.workflow import Workflow
 class Project:
     """
     Project class to manage the DAG-based workflows.
-    
+
     Attributes:
         workflow (Workflow): Workflow object to execute DAG.
         name (str): Name of the project.
         models_folder (str): Name of the folder that contains the models (default: "models").
         dags_folder (str): Name of the folder to store the DAGs (default: "dags").
     """
-    
+
     workflow: Workflow
     name: str
     models_folder: str = field(default="models")
     dags_folder: str = field(default="dags")
-    
+
     def __post_init__(self) -> None:
         # Add the current working directory to the system path to allow importing modules from the project.
         sys.path.append(os.getcwd())
-        
+
         # Configure the logging.
         logging.basicConfig(
             format="%(levelname)s %(asctime)s: %(message)s",
             datefmt="%m/%d/%Y %I:%M:%S %p",
             level=logging.INFO,
         )
-        
+
     def new(self, project_name: str) -> None:
         """
         Create a new project directory structure.
-        
+
         Args:
             project_name (str): Name of the project.
         """
@@ -82,7 +82,7 @@ class Project:
     def _create_models_directory(self, project_name: str) -> None:
         """
         Create the models directory if it does not exist.
-        
+
         Args:
             project_name (str): Name of the project.
         """
@@ -93,7 +93,7 @@ class Project:
     def _create_dags_directory(self, project_name: str) -> None:
         """
         Create the DAGs directory if it does not exist.
-        
+
         Args:
             project_name (str): Name of the project.
         """
@@ -112,17 +112,15 @@ class Project:
             "project": {
                 "name": project_name,
                 "executor": "ThreadExecutor",
-                "cache_strategy": "LocalCache",
             },
-            "tasks": {
-                "task_one": {"materialize": "view"}
-            },
+            "tasks": {"task_one": {"materialize": "view"}},
             "sources": {"one": {"table": "table_name", "schema": "some_schema"}},
             "connection": {
                 "db": "",
                 "host": "",
                 "port": 0,
-                "password": "user",
+                "password": "",
+                "user": "",
                 "sql_alchemy_driver": "",
             },
         }
