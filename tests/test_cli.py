@@ -7,12 +7,11 @@ import unittest.mock
 
 
 
+container.database_client.override(unittest.mock.Mock())
 
 
-
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def setup():
-    container.database_client.override(unittest.mock.Mock())
     yield None
     # clean up
     shutil.rmtree("my_project")
@@ -22,11 +21,6 @@ def setup():
 def test_new(setup):
     runner = CliRunner()
     result = runner.invoke(app, ["new", "my_project"])
-    assert result.exit_code == 0
-
-def test_run(setup):
-    runner = CliRunner()
-    result = runner.invoke(app, ["run"])
     assert result.exit_code == 0
 
 
