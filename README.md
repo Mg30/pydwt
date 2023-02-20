@@ -91,7 +91,7 @@ def processing():
     df_joined.select(df_joined.key, df_joined.date_right)
     df_joined.write("new_table")
 
-@Task(depends_on[processing])
+@Task(depends_on=[processing])
 def child_task():
     df = session.table("new_table")
     df.show()
