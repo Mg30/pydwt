@@ -43,35 +43,3 @@ class ThreadExecutor(AbstractExecutor):
             task.run()
             self._queue.task_done()
 
-
-@dataclass
-class AsyncExecutor(AbstractExecutor):
-    tasks: List
-    nb_workers: int = 2
-    _queue: asyncio.Queue = field(default_factory=asyncio.Queue)
-
-    def __post_init__(self):
-        for task in self.tasks:
-            self._queue.put_nowait(task)
-
-    async def run(self):
-        """Rull all workers"""
-        tasks = []
-
-        for _ in range(0, self.nb_workers):
-            task = asyncio.create_task(self.worker())
-            tasks.append(task)
-
-        await self._queue.join()
-        # Cancel our worker tasks.
-        for task in tasks:
-            task.cancel()
-        # Wait until all worker tasks are cancelled.
-        await asyncio.gather(*tasks, return_exceptions=True)
-
-    async def worker(self):
-        while True:
-            # Get a "work item" out of the queue.
-            task = await self._queue.get()
-            await task.run()
-            self._queue.task_done()

@@ -111,7 +111,6 @@ class Project:
         settings: Dict = {
             "project": {
                 "name": project_name,
-                "executor": "ThreadExecutor",
             },
             "tasks": {"task_one": {"materialize": "view"}},
             "sources": {"one": {"table": "table_name", "schema": "some_schema"}},

@@ -40,13 +40,10 @@ class Container(containers.DeclarativeContainer):
         database_client
     )
 
-    # Factory provider that provides the cache strategy instance
-    cache_strategy = providers.Factory()
 
     # Singleton provider that provides the workflow instance
     workflow_factory = providers.ThreadSafeSingleton(
         Workflow,
-        executor=config.project.executor,
     )
 
     # Factory provider that provides the project instance
