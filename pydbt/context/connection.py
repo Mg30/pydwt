@@ -29,9 +29,10 @@ class Connection(object):
     def __post_init__(self):
         """Initialize the connection object and create the database engine."""
         # Encode the password to be used in the connection URL
-        encoded_password = quote_plus(self.password)
-
+        self.password = quote_plus(self.password)
         # Create the database engine using SQLAlchemy
-        self.engine = create_engine(
-            f"{self.sql_alchemy_driver}://{self.user}:{encoded_password}@{self.host}:{self.port}/{self.db}"
+
+    def get_engine(self):
+        return create_engine(
+            f"{self.sql_alchemy_driver}://{self.user}:{self.password}@{self.host}:{self.port}/{self.db}"
         )

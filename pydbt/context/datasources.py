@@ -27,9 +27,9 @@ class Datasources(object):
         """
         # Get the configuration for the data source
         config = self.referentiel[name]
-
+        engine = self.connection.get_engine()
         # Create a Session object for the schema that contains the table
-        session = Session(engine=self.connection.engine, schema=config["schema"])
+        session = Session(engine=engine, schema=config["schema"])
 
         # Return a Table object for the table in the data source
         return session.table(config["table"])
