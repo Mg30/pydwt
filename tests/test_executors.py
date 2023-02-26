@@ -1,5 +1,5 @@
 from unittest.mock import MagicMock
-from pydbt.core.executors import ThreadExecutor
+from pydwt.core.executors import ThreadExecutor
 
 
 class TestThreadExecutor:

@@ -1,5 +1,5 @@
 from sqlalchemy import select, Table, MetaData
-from pydbt.sql.dataframe import DataFrame
+from pydwt.sql.dataframe import DataFrame
 
 
 class Session:

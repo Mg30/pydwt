@@ -9,7 +9,7 @@ from sqlalchemy import (
     func,
     ForeignKey,
 )
-from pydbt.sql.session import Session
+from pydwt.sql.session import Session
 import pytest
 
 

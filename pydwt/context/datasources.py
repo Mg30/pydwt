@@ -1,6 +1,6 @@
 from dataclasses import dataclass
-from pydbt.sql.session import Session
-from pydbt.context.connection import Connection
+from pydwt.sql.session import Session
+from pydwt.context.connection import Connection
 from typing import Any, Dict
 
 

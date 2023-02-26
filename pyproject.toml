@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "pydbt"
+name = "pydwt"
 version = "0.1.1a0"
 description = ""
 authors = ["gonza <matgonzalez@hotmail.fr>"]
@@ -26,4 +26,4 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-pydbt = "pydbt.app:app"
+pydwt = "pydwt.app:app"

@@ -1,14 +1,14 @@
-from pydbt.core.task import Task
-from pydbt.core.dag import Dag
+from pydwt.core.task import Task
+from pydwt.core.dag import Dag
 import pytest
 import unittest.mock
 
-from pydbt.core.containers import Container
+from pydwt.core.containers import Container
 
 
 container = Container()
 container.database_client.override(unittest.mock.Mock())
-container.wire(modules=["pydbt.core.task"])
+container.wire(modules=["pydwt.core.task"])
 
 
 

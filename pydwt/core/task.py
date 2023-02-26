@@ -8,9 +8,9 @@ from typing import Callable, Dict, List
 
 from dependency_injector.wiring import Provide
 
-from pydbt.core.containers import Container
-from pydbt.core.schedule import Daily, ScheduleInterface
-from pydbt.core.workflow import Workflow
+from pydwt.core.containers import Container
+from pydwt.core.schedule import Daily, ScheduleInterface
+from pydwt.core.workflow import Workflow
 
 
 @dataclass

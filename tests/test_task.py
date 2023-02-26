@@ -1,12 +1,12 @@
-from pydbt.core.task import Task
+from pydwt.core.task import Task
 import pytest
 from unittest import mock
-from pydbt.core.containers import Container
-from pydbt.core.schedule import Monthly
+from pydwt.core.containers import Container
+from pydwt.core.schedule import Monthly
 
 container = Container()
 container.database_client.override(mock.Mock())
-container.wire(modules=["pydbt.core.task"])
+container.wire(modules=["pydwt.core.task"])
 
 @pytest.fixture
 def fake_task_one():

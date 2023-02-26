@@ -6,8 +6,8 @@ from typing import List
 import matplotlib.pyplot as plt
 import networkx as nx
 
-from pydbt.core.dag import Dag
-from pydbt.core.executors import ThreadExecutor
+from pydwt.core.dag import Dag
+from pydwt.core.executors import ThreadExecutor
 
 
 @dataclass

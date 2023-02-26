@@ -12,10 +12,10 @@ project_factory is a provider that returns a Project instance, which is a collec
 """
 
 from dependency_injector import containers, providers
-from pydbt.context.connection import Connection
-from pydbt.core.workflow import Workflow
-from pydbt.core.project import Project
-from pydbt.context.datasources import Datasources
+from pydwt.context.connection import Connection
+from pydwt.core.workflow import Workflow
+from pydwt.core.project import Project
+from pydwt.context.datasources import Datasources
 
 class Container(containers.DeclarativeContainer):
     # Configuration provider, contains the project configuration

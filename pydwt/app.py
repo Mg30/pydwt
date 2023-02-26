@@ -6,7 +6,7 @@ import typer
 import yaml
 from dependency_injector.wiring import register_loader_containers
 
-from pydbt.core.containers import Container
+from pydwt.core.containers import Container
 
 
 sys.path.append(os.getcwd())
@@ -24,7 +24,7 @@ def load_config(path: str) -> Dict:
 # Define command-line interface using Typer
 @app.command()
 def new(project_name: str):
-    """Create a new PyDBT project."""
+    """Create a new pydwt project."""
     project_handler = container.project_factory()
     project_handler.new(project_name)
 

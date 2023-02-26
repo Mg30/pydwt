@@ -1,7 +1,7 @@
 import os
 import shutil
 import pytest
-from pydbt.core.project import Project
+from pydwt.core.project import Project
 import os
 
 

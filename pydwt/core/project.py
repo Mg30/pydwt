@@ -8,7 +8,7 @@ from typing import Dict
 
 import yaml
 
-from pydbt.core.workflow import Workflow
+from pydwt.core.workflow import Workflow
 
 
 @dataclass
@@ -139,9 +139,9 @@ class Project:
             with open(example_file, "w") as f:
                 f.write(
                     """
-from pydbt.core.task import Task
+from pydwt.core.task import Task
 from dependency_injector.wiring import inject, Provide
-from pydbt.core.containers import Container
+from pydwt.core.containers import Container
 
 @Task()
 @inject

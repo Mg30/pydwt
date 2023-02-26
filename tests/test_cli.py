@@ -1,5 +1,5 @@
 from typer.testing import CliRunner
-from pydbt.app import app, container
+from pydwt.app import app, container
 import os
 import shutil
 import pytest

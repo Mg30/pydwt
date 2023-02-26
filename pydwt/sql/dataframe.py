@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import List, Literal
 from sqlalchemy import select, join
-from pydbt.sql.materializations import CreateTableAs, CreateViewAs
+from pydwt.sql.materializations import CreateTableAs, CreateViewAs
 
 
 class DataFrame(dict):

@@ -25,4 +25,4 @@ jobs:
       - name: Install Project with poetry
         run: poetry install
       - name: Run Project tests with poetry
-        run: poetry run pytest --cov pydbt/ tests/
+        run: poetry run pytest --cov pydwt/ tests/

@@ -1,4 +1,4 @@
-from pydbt.core.schedule import *
+from pydwt.core.schedule import *
 import datetime
 import pytest
 from calendar import Calendar

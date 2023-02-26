@@ -1,8 +1,8 @@
-# PyDBT
+# pydwt
 
-The pydbt library provides a set of tools for orchestrating tasks of data processing in a directed acyclic graph (DAG). This DAG is composed of tasks that have dependencies between them and can be executed in parallel or sequentially, depending on their dependencies.
+The pydwt library provides a set of tools for orchestrating tasks of data processing in a directed acyclic graph (DAG). This DAG is composed of tasks that have dependencies between them and can be executed in parallel or sequentially, depending on their dependencies.
 
-In this document, we will provide a brief explanation of the main modules of the pydbt library, which are:
+In this document, we will provide a brief explanation of the main modules of the pydwt library, which are:
 
 * `session.py`: module for interacting with a database and creating DataFrame objects to manipulate data.
 * `dataframe.py`: module for defining a DataFrame class for working with data.
@@ -18,7 +18,7 @@ Here is an example of how to create a Session object and use the table method to
 
 ```python
 from sqlalchemy import create_engine
-from pydbt.sql.session import Session
+from pydwt.sql.session import Session
 
 engine = create_engine("postgresql://user:password@localhost/dbname")
 session = Session(engine, schema="my_schema")
@@ -35,8 +35,8 @@ You can also materialize a DataFrame as a table or view in the database by calli
 Here is an example of how to create a DataFrame object and perform some operations on it:
 
 ```python
-from pydbt.sql.session import Session
-from pydbt.sql.dataframe import DataFrame
+from pydwt.sql.session import Session
+from pydwt.sql.dataframe import DataFrame
 
 session = Session(engine, schema="my_schema")
 
@@ -62,7 +62,7 @@ The `task.py` module defines a Task class for representing a task in the DAG. A 
 To create a Task object, you can use the `@Task` decorator and define the run method. Here is an example of how to create a Task object:
 
 ```python
-from pydbt.core.task import Task
+from pydwt.core.task import Task
 
 @Task()
 def task_one():
@@ -80,9 +80,9 @@ def task_two():
 
 ```
 
-## Create a new PyDBT project:
+## Create a new pydwt project:
 
-`pydbt new <my_project>`
+`pydwt new <my_project>`
 
 This command will create a new project with the name "my_project" and the required file structure.
 ```
@@ -101,20 +101,20 @@ settings.yml
 
 ## Export the DAG
 
-`pydbt export-dag` 
+`pydwt export-dag` 
 
 will export the current state of your dag in the `project_name/dags/` as PNG file with timestamp.
 
 ## Run your project
 
-`pydbt run`
+`pydwt run`
 
 will run the current state of your DAG. It will process the tasks in the DAG by level and parrelise
 it with the `ThreadExecutor`
 
-## Configuration of your PyDBT project
+## Configuration of your pydwt project
 
-The `settings.yml` file is a configuration file for your PyDBT project. It stores various settings such as the project name, database connection details, and DAG tasks.
+The `settings.yml` file is a configuration file for your pydwt project. It stores various settings such as the project name, database connection details, and DAG tasks.
 
 ### connection
 The connection section contains the configuration details for connecting to the database. The available options are:
@@ -133,7 +133,7 @@ The project section contains the project-related settings. The available options
 `executor`: the executor to use for running the DAG. Available options are ThreadExecutor and AsyncExecutor.
 
 ### tasks
-This section contains the configuration for each task defined in the PyDBT project.  
+This section contains the configuration for each task defined in the pydwt project.  
 
 Each task is identified by its name, and the configuration is stored as a dictionary.  
 
@@ -147,9 +147,9 @@ Each task implementation can access its configuration by injecting the config ar
 example :
 
 ```python
-from pydbt.core.task import Task
+from pydwt.core.task import Task
 from dependency_injector.wiring import inject, Provide
-from pydbt.core.containers import Container
+from pydwt.core.containers import Container
 
 @Task()
 @inject
