@@ -3,6 +3,7 @@ from sqlalchemy.sql.expression import ClauseElement, Executable
 from sqlalchemy.sql.selectable import Selectable
 from typing import Any
 
+
 class CreateTableAs(Executable, ClauseElement):
     """_summary_
     :param Executable: _description_
@@ -29,9 +30,10 @@ def visit_create_table_as(element: Any, compiler: Any, **kw: str) -> str:
     :rtype: str
     """
     return """
-CREATE OR REPLACE TABLE {}
+DROP TABLE IF EXISTS {0};
+CREATE TABLE {0}
 AS
-{}
+{1}
 """.format(
         element.name,
         compiler.process(element.select_query, literal_binds=True),
