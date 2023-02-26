@@ -130,7 +130,6 @@ The connection section contains the configuration details for connecting to the 
 The project section contains the project-related settings. The available options are:
 
 `name`: the name of the project
-`executor`: the executor to use for running the DAG. Available options are ThreadExecutor and AsyncExecutor.
 
 ### tasks
 This section contains the configuration for each task defined in the pydwt project.  
