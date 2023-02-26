@@ -43,13 +43,13 @@ session = Session(engine, schema="my_schema")
 df = session.table("my_table")
 
 # select some columns
-df = df.select("col1", "col2")
+df = df.select(df.col1, df.col2)
 
 # filter rows based on a condition
 df = df.where(df.col1 > 10)
 
 # group by a column and aggregate another column
-df = df.group_by(df.col2, agg={"col1": (func.sum, "sum_col1")})
+df = df.group_by(df.col2, agg={df.col1: (func.sum, "sum_col1")})
 
 # show the resulting DataFrame
 df.materialize("new_table", as_="table")
