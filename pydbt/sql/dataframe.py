@@ -69,7 +69,6 @@ class DataFrame(dict):
         """
         return DataFrame(select(self._stmt, expr.label(name)).cte(), self._engine)
 
-
     def with_column_renamed(self, old_name: str, new_name: str) -> "DataFrame":
         """Create a new DataFrame with the given column renamed.
 
@@ -80,7 +79,23 @@ class DataFrame(dict):
         Returns:
             DataFrame: New DataFrame with the given column renamed.
         """
-        cols = [self[old_name].label(new_name) if col == old_name else self[col] for col in self.columns ]
+        cols = [
+            self[old_name].label(new_name) if col == old_name else self[col]
+            for col in self.columns
+        ]
+        stmt = select(*cols)
+        return DataFrame(stmt.cte(), self._engine)
+
+    def drop(self, *args) -> DataFrame:
+        """Returns a new DataFrame object with the specified columns removed.
+
+        Args:
+            *args: variable length argument list containing the column names to remove.
+
+        Returns:
+            A new DataFrame object with the specified columns removed.
+        """
+        cols = [self[col] for col in args if col not in args]
         stmt = select(*cols)
         return DataFrame(stmt.cte(), self._engine)
 
@@ -124,7 +139,7 @@ class DataFrame(dict):
         # Check that the join type is valid
         if how not in ["inner", "left", "right", "full"]:
             raise ValueError(f"Unsupported join type {how}.")
-        
+
         # Perform the join operation
         if how == "left":
             stmt = select(join(self._stmt, other._stmt, expr, isouter=True))
@@ -134,7 +149,7 @@ class DataFrame(dict):
             stmt = select(join(self._stmt, other._stmt, expr, full=True))
         else:
             stmt = select(join(self._stmt, other._stmt, expr))
-        
+
         # Return the result as a new DataFrame
         return DataFrame(stmt.cte(), self._engine)
 
@@ -176,7 +191,6 @@ class DataFrame(dict):
         conn.execute(q)
         conn.commit()
         conn.close()
-
 
     def collect(self) -> List[dict]:
         """

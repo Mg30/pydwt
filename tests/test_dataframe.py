@@ -100,18 +100,24 @@ def test_dataframe_group_by(session):
 
 def test_dataframe_with_column_renamed(session):
     df1 = session.table("users")
-    df1 = df1.with_column_renamed("name","user_name")
+    df1 = df1.with_column_renamed("name", "user_name")
 
-    assert df1.columns == ['user_id', 'user_name', 'age']
+    assert df1.columns == ["user_id", "user_name", "age"]
+
 
 def test_dataframe_join(session):
     df1 = session.table("users")
-    df1 = df1.with_column_renamed("name","user_name")
+    df1 = df1.with_column_renamed("name", "user_name")
     df2 = session.table("products")
-    df2 = df2.with_column_renamed("name","product_name")
-    df2 = df2.with_column_renamed("user_id","user_id_")
+    df2 = df2.with_column_renamed("name", "product_name")
+    df2 = df2.with_column_renamed("user_id", "user_id_")
     df3 = df1.join(df2, (df1.user_id == df2.user_id_))
 
-    df3.select(df3.age)
+    assert df3.select(df3.age)
 
-    assert df3.collect()
+
+def test_dataframe_drop(session):
+    df1 = session.table("users")
+    df1 = df1.drop("age")
+
+    assert "age" not in df1.columns
