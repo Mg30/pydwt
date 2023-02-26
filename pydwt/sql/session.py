@@ -1,3 +1,4 @@
+from typing import Any
 from sqlalchemy import select, Table, MetaData
 from pydwt.sql.dataframe import DataFrame
 
@@ -28,3 +29,14 @@ class Session:
         t = Table(name, self._metadata, autoload_with=self._engine)
         base = select(t).cte()
         return DataFrame(base, self._engine)
+
+    def create_dataframe(self, stmt: Any) -> DataFrame:
+        """Create a DataFrame from the seletable.
+
+        Args:
+            stmt (Selectable): SQLAlchemy selectable
+
+        Returns:
+            DataFrame: new DataFrame with the given Selectable as base.
+        """
+        return DataFrame(stmt, self._engine)

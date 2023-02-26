@@ -8,9 +8,12 @@ from sqlalchemy import (
     MetaData,
     func,
     ForeignKey,
+    Selectable,
 )
 from pydwt.sql.session import Session
 import pytest
+import sqlalchemy
+from pydwt.sql.dataframe import DataFrame
 
 
 # Define a fixture that creates a fake table using SQLite
@@ -121,3 +124,17 @@ def test_dataframe_drop(session):
     df1 = df1.drop("age")
 
     assert "age" not in df1.columns
+
+
+def test_dataframe_to_cte(session):
+    df1 = session.table("users")
+    stmt = df1.to_cte()
+
+    assert type(stmt) == sqlalchemy.sql.selectable.CTE
+
+
+def test_create_dataframe(session):
+    df1 = session.table("users")
+    stmt = df1.to_cte()
+    df2 = session.create_dataframe(stmt)
+    assert type(df2) == DataFrame

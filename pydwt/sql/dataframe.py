@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import List, Literal
+import sqlalchemy
 from sqlalchemy import select, join
 from pydwt.sql.materializations import CreateTableAs, CreateViewAs
 
@@ -33,7 +34,7 @@ class DataFrame(dict):
         """Return a list of the column names in the dataframe."""
         return [str(col).split(".")[-1] for col in self._stmt.columns]
 
-    def select(self, *args):
+    def select(self, *args) -> DataFrame:
         """Create a new DataFrame that only has the columns specified.
 
         Args:
@@ -45,7 +46,7 @@ class DataFrame(dict):
         projection = select(*args).cte()
         return DataFrame(projection, self._engine)
 
-    def where(self, expr):
+    def where(self, expr) -> DataFrame:
         """Create a new DataFrame that only has rows that meet the condition.
 
         Args:
@@ -57,7 +58,7 @@ class DataFrame(dict):
         selection = select(self._stmt).where(expr).cte()
         return DataFrame(selection, self._engine)
 
-    def with_column(self, name, expr):
+    def with_column(self, name, expr) -> DataFrame:
         """Create a new DataFrame that has an additional column.
 
         Args:
@@ -69,7 +70,7 @@ class DataFrame(dict):
         """
         return DataFrame(select(self._stmt, expr.label(name)).cte(), self._engine)
 
-    def with_column_renamed(self, old_name: str, new_name: str) -> "DataFrame":
+    def with_column_renamed(self, old_name: str, new_name: str) -> DataFrame:
         """Create a new DataFrame with the given column renamed.
 
         Args:
@@ -103,7 +104,7 @@ class DataFrame(dict):
         """Create a new DataFrame that has grouped rows.
 
         Args:
-            *args (selectable): Columns to group by.
+            *args (Selectable): Columns to group by.
             **kwargs:
                 agg (Dict[str, Tuple[Callable, str]]): Dictionary that maps from column name to
                 (aggregation function, name of the aggregation).
@@ -124,7 +125,7 @@ class DataFrame(dict):
             grouped = select(*args).group_by(*args).cte()
         return DataFrame(grouped, self._engine)
 
-    def join(self, other: "DataFrame", expr, how: str = "inner"):
+    def join(self, other: "DataFrame", expr, how: str = "inner") -> DataFrame:
         """
         Join this DataFrame with another DataFrame.
 
@@ -153,7 +154,7 @@ class DataFrame(dict):
         # Return the result as a new DataFrame
         return DataFrame(stmt.cte(), self._engine)
 
-    def show(self):
+    def show(self) -> None:
         """
         Print the first 20 rows of the DataFrame.
         """
@@ -161,6 +162,10 @@ class DataFrame(dict):
         q = select(self._stmt).limit(20)
         print(conn.execute(q).fetchall())
         conn.close()
+
+    def to_cte(self) -> sqlalchemy.sql.selectable.CTE:
+        "Return the DataFrame as a SQLAlchemy cte"
+        return self._stmt
 
     def materialize(self, name: str, as_: Literal["view", "table"]) -> None:
         """
