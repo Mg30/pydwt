@@ -2,6 +2,9 @@
 
 The pydwt library provides a set of tools for orchestrating tasks of data processing in a directed acyclic graph (DAG). This DAG is composed of tasks that have dependencies between them and can be executed in parallel or sequentially, depending on their dependencies.
 
+## Installation
+`pip install pydwt`
+
 In this document, we will provide a brief explanation of the main modules of the pydwt library, which are:
 
 * `session.py`: module for interacting with a database and creating DataFrame objects to manipulate data.
