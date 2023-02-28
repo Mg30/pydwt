@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pydwt"
-version = "0.1.1a0"
+version = "0.1.1a1"
 description = ""
 authors = ["gonza <matgonzalez@hotmail.fr>"]
 readme = "README.md"
