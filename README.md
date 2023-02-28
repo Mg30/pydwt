@@ -5,6 +5,7 @@ The pydwt library provides a set of tools for orchestrating tasks of data proces
 ## Installation
 `pip install pydwt`
 
+## Guide 
 In this document, we will provide a brief explanation of the main modules of the pydwt library, which are:
 
 * `session.py`: module for interacting with a database and creating DataFrame objects to manipulate data.
@@ -165,5 +166,31 @@ def task_two():
 ### sources
 
 The sources section contains the database sources that can be used in the project. Each source must have a unique name and specify the schema and table to use for the source.
+
+```yaml
+sources:
+  name_alias:
+    table: xxx
+    schema: yyy
+```
+
+You can then required this datasource in your tasks
+
+```python
+from pydwt.core.task import Task
+from dependency_injector.wiring import inject, Provide
+from pydwt.core.containers import Container
+
+@Task()
+@inject
+def task_one(
+    config:dict = Provide[Container.config.tasks.task_one],
+    repo= Provide[Container.datasources],
+    ):
+    df = repo.get_sources("name_alias")
+```
+
+
+
 ## License
 This project is licensed under GPL.
