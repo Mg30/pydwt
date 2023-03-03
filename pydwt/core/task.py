@@ -1,6 +1,7 @@
 import functools
 import logging
 import traceback
+import time
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -103,8 +104,10 @@ class Task(BaseTask):
             return
 
         logging.info(f"task {self.name} is scheduled to be run")
+        start_time = time.time()
         self._run_task_with_retry()
-
+        elapsed_time = time.time() - start_time
+        logging.info(f"task {self.name} completed in {elapsed_time:.2f} seconds")
     def __eq__(self, other):
         if isinstance(other, Task):
             return (
