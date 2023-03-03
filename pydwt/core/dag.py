@@ -83,6 +83,6 @@ class Dag(object):
         node_index = self.node_index[task.name]
         for parent_index in self.graph.predecessors(node_index):
             parent = self.tasks[parent_index]
-            if parent.status == Status.ERROR:
+            if parent.status == Status.ERROR or parent.status == Status.PENDING:
                 return False
         return True
