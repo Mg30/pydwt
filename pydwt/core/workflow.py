@@ -32,7 +32,7 @@ class Workflow(object):
     def run(self) -> None:
         """Run the tasks in the DAG."""
         # Get a dictionary of all the task levels in the DAG
-        levels = self.dag.levels
+        levels = self.dag.build_level()
         start_time_workflow = time.time()
         # Iterate through each level in the DAG
         for level, task_indexes in levels.items():

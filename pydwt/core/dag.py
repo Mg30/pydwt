@@ -16,19 +16,8 @@ class Dag(object):
         self.tasks = tasks
         self.graph = nx.DiGraph()
         self.source = "s"
-        self.nodes_by_level = {}
         self.node_index = {}
         self.node_names = {}
-
-    @property
-    def levels(self) -> Dict[int, List[int]]:
-        """Get the level of each task in the dag.
-
-        Returns:
-            Dict[int, List[int]]: Dictionary of levels and their corresponding task indexes.
-        """
-        self.build_level()
-        return self.nodes_by_level
 
     def build_dag(self) -> None:
         """Build the directed acyclic graph from the tasks and their dependencies."""
@@ -59,17 +48,18 @@ class Dag(object):
 
         self.graph.add_edges_from(edges)
 
-    def build_level(self) -> None:
+    def build_level(self) -> Dict:
         """Assign levels to nodes based on the breadth-first search."""
         # Perform breadth-first search on the graph
-        self.nodes_by_level = {}
+        nodes_by_level = {}
         bfs_tree = nx.bfs_tree(self.graph, self.source)
         # Assign levels to nodes based on their distance from the root node
         level = nx.shortest_path_length(bfs_tree, self.source)
         for node, node_level in level.items():
-            if node_level not in self.nodes_by_level:
-                self.nodes_by_level[node_level] = []
-            self.nodes_by_level[node_level].append(node)
+            if node_level not in nodes_by_level:
+                nodes_by_level[node_level] = []
+            nodes_by_level[node_level].append(node)
+        return nodes_by_level
 
     def check_parents_status(self, task):
         """Check if all parent tasks have the attribute status set to success.
