@@ -1,4 +1,6 @@
 import logging
+import time
+
 from dataclasses import dataclass, field
 from typing import List
 
@@ -31,7 +33,7 @@ class Workflow(object):
         """Run the tasks in the DAG."""
         # Get a dictionary of all the task levels in the DAG
         levels = self.dag.levels
-
+        start_time_workflow = time.time()
         # Iterate through each level in the DAG
         for level, task_indexes in levels.items():
             # Skip the first level (level 0) as it contains the root task
@@ -54,8 +56,14 @@ class Workflow(object):
                 logging.info(
                     f"collected tasks set {tasks_names} using {nb_workers} threads"
                 )
+                start_time = time.time()
                 executor = ThreadExecutor(tasks, nb_workers=nb_workers)
                 executor.run()
+                elapsed_time = time.time() - start_time
+                logging.info(f"tasks set completed in {elapsed_time:.2f} seconds")
+
+        elapsed_time_workflow = time.time() - start_time_workflow
+        logging.info(f"workflow completed in {elapsed_time_workflow:.2f} seconds")
 
     def export_dag(self, path: str) -> None:
         """Export the DAG to a PNG image file.
