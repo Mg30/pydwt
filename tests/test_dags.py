@@ -31,6 +31,23 @@ def dag():
     dag.build_dag()
     return dag
 
+
+def test_dag_init():
+
+    def fake_task_one():
+        pass
+    def fake_task_two():
+        pass
+
+    task1 = Task(retry=2)
+    task1(fake_task_one)
+
+    task2 = Task(depends_on=[fake_task_one])
+    task2(fake_task_two)
+    dag = Dag(tasks=[task1, task2])
+    assert dag
+
+
 def test_build_dag_nodes(dag):
     """Test that the dag is built correctly."""
     assert list(dag.graph.nodes()) == [0, 1, "s"]
@@ -51,3 +68,42 @@ def test_build_level(dag):
     """Test that the levels are assigned correctly."""
     dag.build_level()
     assert dag.levels == {0: ["s"], 1: [0], 2: [1]}
+
+def test_dag_check_parents_status_error():
+
+    def fake_task_one():
+        raise ValueError("fake error")
+    def fake_task_two():
+        pass
+        
+
+    task1 = Task(retry=2)
+    task1(fake_task_one)
+
+    task2 = Task(depends_on=[fake_task_one])
+    task2(fake_task_two)
+    dag = Dag(tasks=[task1, task2])
+    dag.build_dag()
+    task1.run()
+    task2.run()
+    assert not dag.check_parents_status(task2)
+
+def test_dag_check_parents_status_success():
+
+    def fake_task_one():
+        pass
+    def fake_task_two():
+        pass
+        
+
+    task1 = Task(retry=2)
+    task1(fake_task_one)
+
+    task2 = Task(depends_on=[fake_task_one])
+    task2(fake_task_two)
+    dag = Dag(tasks=[task1, task2])
+    dag.build_dag()
+    task1.run()
+    task2.run()
+    assert dag.check_parents_status(task2)
+

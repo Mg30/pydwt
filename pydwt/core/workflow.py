@@ -1,6 +1,5 @@
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime
 from typing import List
 
 import matplotlib.pyplot as plt
@@ -40,7 +39,12 @@ class Workflow(object):
                 logging.info(f"exploring dag level {level}")
 
                 # Create a list of tasks in the current level
-                tasks = [task for i, task in enumerate(self.tasks) if i in task_indexes]
+                # Check if all parent tasks has succeeded
+                tasks = [
+                    task
+                    for i, task in enumerate(self.tasks)
+                    if i in task_indexes and self.dag.check_parents_status(task)
+                ]
 
                 # Get the names of all the tasks in the current level
                 tasks_names = [task.name for task in tasks]

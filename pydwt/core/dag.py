@@ -1,5 +1,6 @@
 import networkx as nx
 from typing import Dict, List
+from pydwt.core.enums import Status
 
 
 class Dag(object):
@@ -15,6 +16,9 @@ class Dag(object):
         self.tasks = tasks
         self.graph = nx.DiGraph()
         self.source = "s"
+        self.nodes_by_level = {}
+        self.node_index = {}
+        self.node_names = {}
 
     @property
     def levels(self) -> Dict[int, List[int]]:
@@ -32,17 +36,22 @@ class Dag(object):
         node_names = {}
 
         for i, task in enumerate(self.tasks):
-            node_names[i] = task.name
+            self.node_names[i] = task.name
+            self.node_index[task.name] = i
             self.graph.add_node(i, name=task.name)
 
             if task.depends_on:
                 for dep_func in task.depends_on:
                     dep_name = f"{dep_func.__module__}.{dep_func.__name__}"
-                    if dep_name in node_names.values():
-                        dep_index = next(index for index, name in node_names.items() if name == dep_name)
+                    if dep_name in self.node_names.values():
+                        dep_index = next(
+                            index
+                            for index, name in self.node_names.items()
+                            if name == dep_name
+                        )
                     else:
-                        dep_index = len(node_names)
-                        node_names[dep_index] = dep_name
+                        dep_index = len(self.node_names)
+                        self.node_names[dep_index] = dep_name
                         self.graph.add_node(dep_index, name=dep_name)
 
                     edges.append((dep_index, i))
@@ -54,11 +63,27 @@ class Dag(object):
     def build_level(self) -> None:
         """Assign levels to nodes based on the breadth-first search."""
         # Perform breadth-first search on the graph
+        self.nodes_by_level = {}
         bfs_tree = nx.bfs_tree(self.graph, self.source)
         # Assign levels to nodes based on their distance from the root node
         level = nx.shortest_path_length(bfs_tree, self.source)
-        self.nodes_by_level = {}
         for node, node_level in level.items():
             if node_level not in self.nodes_by_level:
                 self.nodes_by_level[node_level] = []
             self.nodes_by_level[node_level].append(node)
+
+    def check_parents_status(self, task):
+        """Check if all parent tasks have the attribute status set to success.
+
+        Args:
+            task: The task to check.
+
+        Returns:
+            bool: True if all parent tasks have the attribute status set to success, False otherwise.
+        """
+        node_index = self.node_index[task.name]
+        for parent_index in self.graph.predecessors(node_index):
+            parent = self.tasks[parent_index]
+            if parent.status == Status.ERROR:
+                return False
+        return True
