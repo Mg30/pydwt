@@ -1,7 +1,7 @@
 from typing import Dict
 import os
 import sys
-
+from typing import Optional
 import typer
 import yaml
 from dependency_injector.wiring import register_loader_containers
@@ -30,12 +30,12 @@ def new(project_name: str):
 
 
 @app.command()
-def run():
+def run(name: Optional[str] = typer.Argument(None)):
     """Run the workflow DAG for the current project."""
     config = load_config(path="settings.yml")
     container.config.from_dict(config)
     project_handler = container.project_factory()
-    project_handler.run()
+    project_handler.run(name)
 
 
 @app.command()
