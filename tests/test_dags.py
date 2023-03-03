@@ -102,3 +102,28 @@ def test_dag_check_parents_status_success():
     task1.run()
     task2.run()
     assert dag.check_parents_status(task2)
+
+
+def test_dag_build_level_task_name():
+    def fake_task_one():
+        pass
+
+    def fake_task_two():
+        pass
+
+    def fake_task_three():
+        pass
+
+    task1 = Task(retry=2)
+    task1(fake_task_one)
+
+    task2 = Task(depends_on=[fake_task_one])
+    task2(fake_task_two)
+
+    task3 = Task(depends_on=[fake_task_one])
+    task3(fake_task_three)
+
+    dag = Dag(tasks=[task1, task2, task3])
+    dag.build_dag()
+    levels = dag.build_level(target="tests.test_dags.fake_task_three")
+    assert levels == {0: ["s"], 1: [0], 2: [2]}
