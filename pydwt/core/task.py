@@ -11,6 +11,8 @@ from dependency_injector.wiring import Provide
 from pydwt.core.containers import Container
 from pydwt.core.schedule import Daily, ScheduleInterface
 from pydwt.core.workflow import Workflow
+from pydwt.core.enums import Status
+
 
 
 @dataclass
@@ -34,6 +36,7 @@ class BaseTask(ABC):
     workflow: Workflow = Provide[Container.workflow_factory]
     config: Dict = Provide[Container.config]
     sources: Dict = Provide[Container.datasources]
+    status: Status = Status.PENDING  
 
     @property
     def depends_on_name(self):
@@ -118,12 +121,14 @@ class Task(BaseTask):
             try:
                 self._count_call += 1
                 self._task()
+                self.status = Status.SUCCESS
                 break
             except Exception as e:
                 if n == self.retry:
                     logging.error(
                         f"task  {self.name} failed after {self.retry} attempts: {traceback.print_exc()}"
                     )
+                    self.status = Status.ERROR
 
                 else:
                     logging.info(f"retrying task {self.name} try number: {n}")

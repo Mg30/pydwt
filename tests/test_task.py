@@ -3,6 +3,8 @@ import pytest
 from unittest import mock
 from pydwt.core.containers import Container
 from pydwt.core.schedule import Monthly
+from pydwt.core.enums import Status
+
 
 container = Container()
 container.database_client.override(mock.Mock())
@@ -22,6 +24,13 @@ def fake_task_two():
         pass
 
     return inner_func_bis
+
+@pytest.fixture
+def fake_task_three():
+    def inner_func_third():
+        raise ValueError("fake error")
+
+    return inner_func_third
 
 
 
@@ -63,3 +72,19 @@ def test_task_eq(fake_task_one):
     task2(fake_task_one)
 
     assert task == task2
+
+
+def test_task_status_error(fake_task_three):
+    task = Task()
+    task(fake_task_three)
+    task.run()
+
+    assert task.status == Status.ERROR
+
+
+def test_task_status_success(fake_task_one):
+    task = Task()
+    task(fake_task_one)
+    task.run()
+
+    assert task.status == Status.SUCCESS
