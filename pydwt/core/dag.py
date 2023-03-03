@@ -33,7 +33,6 @@ class Dag(object):
     def build_dag(self) -> None:
         """Build the directed acyclic graph from the tasks and their dependencies."""
         edges = []
-        node_names = {}
 
         for i, task in enumerate(self.tasks):
             self.node_names[i] = task.name
