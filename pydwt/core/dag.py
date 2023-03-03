@@ -68,7 +68,7 @@ class Dag(object):
 
         level = None
 
-        if node_index:
+        if node_index is not None:
             level = {}
             path = nx.shortest_path(self.graph, self.source, node_index)
             print(path)
