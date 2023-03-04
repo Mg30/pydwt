@@ -111,10 +111,13 @@ will export the current state of your dag in the `project_name/dags/` as PNG fil
 
 ## Run your project
 
-`pydwt run`
+`pydwt run <module.function_name>`
 
-will run the current state of your DAG. It will process the tasks in the DAG by level and parallelize
-it with the `ThreadExecutor`
+If no argument provided will run the current state of your DAG. It will process the tasks in the DAG by level and parallelize
+it with the `ThreadExecutor`. It a task failed then its child tasks will not be run.
+
+If argument provided in the form of `module.function_name` for instance `example.task_one` then will run all tasks in the dag leading to this task.  
+If parent tasks succeeded then run the task.
 
 
 ## Test your connection setup
@@ -133,7 +136,7 @@ The connection section contains the configuration details for connecting to the 
 * `url`: the connection string to your db
 
 You can add others keys that will be forwarded to the underlying `create_engine` function
-for instance you can add a `echo : true` and it will call `create_engine(url=url, echo=echo)
+for instance you can add a `echo : true` and it will call `create_engine(url=url, echo=echo)`
 see [here](https://docs.sqlalchemy.org/en/20/core/engines.html#sqlalchemy.create_engine) supported args.
 
 ### project
