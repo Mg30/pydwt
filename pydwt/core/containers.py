@@ -24,13 +24,7 @@ class Container(containers.DeclarativeContainer):
     # Singleton provider that provides the database connection instance
     database_client = providers.ThreadSafeSingleton(
         Connection,
-        config.connection.db,
-        config.connection.host,
-        config.connection.name,
-        config.connection.password,
-        config.connection.user,
-        config.connection.port,
-        config.connection.sql_alchemy_driver,
+        config.connection,
     )
 
     # Singleton provider that provides the datasources instance
