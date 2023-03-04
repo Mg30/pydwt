@@ -48,13 +48,35 @@ class Dag(object):
 
         self.graph.add_edges_from(edges)
 
-    def build_level(self) -> Dict:
-        """Assign levels to nodes based on the breadth-first search."""
-        # Perform breadth-first search on the graph
+    def build_level(self, target: str = None) -> Dict:
+        """Assign levels to nodes in the dag using the breadth-first search.
+
+        Args:
+            target (str): Optional target node. If provided, the search will be performed up to this node.
+
+        Returns:
+            Dict: Dictionary of levels and their corresponding node indexes.
+
+        Raises:
+            KeyError: If target node is not found in the graph.
+        """
         nodes_by_level = {}
+        # If a target node is provided, get its index in the node_index dictionary
+        node_index = self.node_index.get(target, None)
+        # Perform breadth-first search on the graph
         bfs_tree = nx.bfs_tree(self.graph, self.source)
+
+        level = None
+
+        if node_index is not None:
+            level = {}
+            path = nx.shortest_path(self.graph, self.source, node_index)
+            for i,node in enumerate(path):
+                level[node] = i
+
+        else:
         # Assign levels to nodes based on their distance from the root node
-        level = nx.shortest_path_length(bfs_tree, self.source)
+            level = nx.shortest_path_length(bfs_tree, self.source)
         for node, node_level in level.items():
             if node_level not in nodes_by_level:
                 nodes_by_level[node_level] = []
@@ -72,6 +94,8 @@ class Dag(object):
         """
         node_index = self.node_index[task.name]
         for parent_index in self.graph.predecessors(node_index):
+            if parent_index == "s":
+                continue
             parent = self.tasks[parent_index]
             if parent.status == Status.ERROR or parent.status == Status.PENDING:
                 return False
