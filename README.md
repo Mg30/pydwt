@@ -99,7 +99,7 @@ settings.yml
 
 * `project_name/models`: where you will put your tasks
 * `project_name/dags/`: where the corresponding dag PNG file will be
-* `project_name/settings.yml`: a configuration file for your project. This file includes the configuration options for your project, such as the path to your data directory.
+* `settings.yml`: a configuration file for your project. This file includes the configuration options for your project, such as the path to your data directory.
 
 
 
@@ -113,7 +113,7 @@ will export the current state of your dag in the `project_name/dags/` as PNG fil
 
 `pydwt run`
 
-will run the current state of your DAG. It will process the tasks in the DAG by level and parrelise
+will run the current state of your DAG. It will process the tasks in the DAG by level and parallelize
 it with the `ThreadExecutor`
 
 ## Configuration of your pydwt project
@@ -123,12 +123,11 @@ The `settings.yml` file is a configuration file for your pydwt project. It store
 ### connection
 The connection section contains the configuration details for connecting to the database. The available options are:
 
-* `db`: the name of the database
-* `host`: the hostname or IP address of the database server
-* `user`: the username for the database connection
-* `password`: the password for the database connection
-* `port`: the port number to use for the database connection
-* `sql_alchemy_driver`: the SQLAlchemy driver to use for the database connection
+* `url`: the connection string to your db
+
+You can add others keys that will be forwarded to the underlying `create_engine` function
+for instance you can add a `echo : true` and it will call `create_engine(url=url, echo=echo)
+see [here](https://docs.sqlalchemy.org/en/20/core/engines.html#sqlalchemy.create_engine) supported args.
 
 ### project
 The project section contains the project-related settings. The available options are:
