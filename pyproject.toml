@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pydwt"
-version = "0.1.1a1"
+version = "0.1.1"
 description = ""
 authors = ["gonza <matgonzalez@hotmail.fr>"]
 readme = "README.md"
@@ -10,7 +10,6 @@ python = "^3.8"
 networkx = "^3.0"
 matplotlib = "^3.6.3"
 sqlalchemy = "^2.0.1"
-dill = "^0.3.6"
 typer = "^0.7.0"
 pyyaml = "^6.0"
 dependency-injector = "^4.41.0"

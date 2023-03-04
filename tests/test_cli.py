@@ -3,11 +3,11 @@ from pydwt.app import app, container
 import os
 import shutil
 import pytest
-import unittest.mock
+from pydwt.context.connection import Connection
 
+args = {"url": "sqlite:///:memory:", "echo": True}
 
-
-container.database_client.override(unittest.mock.Mock())
+container.database_client.override(Connection(args))
 
 
 @pytest.fixture(scope="module")
@@ -27,4 +27,10 @@ def test_new(setup):
 def test_export_dag(setup):
     runner = CliRunner()
     result = runner.invoke(app, ["export-dag"])
+    assert result.exit_code == 0
+
+
+def test_connection_testing(setup):
+    runner = CliRunner()
+    result = runner.invoke(app, ["test-connection"])
     assert result.exit_code == 0

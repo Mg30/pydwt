@@ -62,11 +62,12 @@ class Project:
         for model in models:
             importlib.import_module(f"{self.name}.models.{model}")
 
-    def run(self) -> None:
+    def run(self, task_name: str = None) -> None:
         """Run the DAG-based workflow."""
+        task_full_name = f"{self.name}.models.{task_name}" if task_name else None
         self.import_all_models()
         self.workflow.dag.build_dag()
-        self.workflow.run()
+        self.workflow.run(task_full_name)
 
     def export_dag(self) -> None:
         """Export the DAG to a PNG image file."""
@@ -115,12 +116,8 @@ class Project:
             "tasks": {"task_one": {"materialize": "view"}},
             "sources": {"one": {"table": "table_name", "schema": "some_schema"}},
             "connection": {
-                "db": "",
-                "host": "",
-                "port": 0,
-                "password": "",
-                "user": "",
-                "sql_alchemy_driver": "",
+            "url": '<connection-string>',
+            "echo": True
             },
         }
         if not os.path.exists(settings_projects):

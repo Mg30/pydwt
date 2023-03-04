@@ -11,14 +11,11 @@ container.database_client.override(unittest.mock.Mock())
 container.wire(modules=["pydwt.core.task"])
 
 
-
-
-
 @pytest.fixture
 def dag():
-
     def fake_task_one():
         pass
+
     def fake_task_two():
         pass
 
@@ -33,9 +30,9 @@ def dag():
 
 
 def test_dag_init():
-
     def fake_task_one():
         pass
+
     def fake_task_two():
         pass
 
@@ -63,19 +60,18 @@ def test_build_dag_node_name(dag):
     assert dag.graph.nodes[0]["name"] == "tests.test_dags.fake_task_one"
 
 
-
 def test_build_level(dag):
     """Test that the levels are assigned correctly."""
-    dag.build_level()
-    assert dag.levels == {0: ["s"], 1: [0], 2: [1]}
+    levels = dag.build_level()
+    assert levels == {0: ["s"], 1: [0], 2: [1]}
+
 
 def test_dag_check_parents_status_error():
-
     def fake_task_one():
         raise ValueError("fake error")
+
     def fake_task_two():
         pass
-        
 
     task1 = Task(retry=2)
     task1(fake_task_one)
@@ -88,13 +84,13 @@ def test_dag_check_parents_status_error():
     task2.run()
     assert not dag.check_parents_status(task2)
 
-def test_dag_check_parents_status_success():
 
+def test_dag_check_parents_status_success():
     def fake_task_one():
         pass
+
     def fake_task_two():
         pass
-        
 
     task1 = Task(retry=2)
     task1(fake_task_one)
@@ -107,3 +103,27 @@ def test_dag_check_parents_status_success():
     task2.run()
     assert dag.check_parents_status(task2)
 
+
+def test_dag_build_level_task_name():
+    def fake_task_one():
+        pass
+
+    def fake_task_two():
+        pass
+
+    def fake_task_three():
+        pass
+
+    task1 = Task(retry=2)
+    task1(fake_task_one)
+
+    task2 = Task(depends_on=[fake_task_one])
+    task2(fake_task_two)
+
+    task3 = Task(depends_on=[fake_task_one])
+    task3(fake_task_three)
+
+    dag = Dag(tasks=[task1, task2, task3])
+    dag.build_dag()
+    levels = dag.build_level(target="tests.test_dags.fake_task_three")
+    assert levels == {0: ["s"], 1: [0], 2: [2]}

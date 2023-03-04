@@ -29,10 +29,10 @@ class Workflow(object):
         # check if cache strategy is provided and use_cache flag is enabled
         self.dag = Dag(self.tasks)
 
-    def run(self) -> None:
+    def run(self, task_name: str = None) -> None:
         """Run the tasks in the DAG."""
         # Get a dictionary of all the task levels in the DAG
-        levels = self.dag.levels
+        levels = self.dag.build_level(task_name)
         start_time_workflow = time.time()
         # Iterate through each level in the DAG
         for level, task_indexes in levels.items():
