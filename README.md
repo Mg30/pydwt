@@ -116,6 +116,13 @@ will export the current state of your dag in the `project_name/dags/` as PNG fil
 will run the current state of your DAG. It will process the tasks in the DAG by level and parallelize
 it with the `ThreadExecutor`
 
+
+## Test your connection setup
+
+`pydwt test-connection`
+
+will test the current setup of your DB connectiona according to your `settings.yml` file.
+
 ## Configuration of your pydwt project
 
 The `settings.yml` file is a configuration file for your pydwt project. It stores various settings such as the project name, database connection details, and DAG tasks.
