@@ -113,17 +113,6 @@ pydantic = ["pydantic"]
 yaml = ["pyyaml"]
 
 [[package]]
-name = "dill"
-version = "0.3.6"
-description = "serialize all of python"
-category = "main"
-optional = false
-python-versions = ">=3.7"
-
-[package.extras]
-graph = ["objgraph (>=1.7.2)"]
-
-[[package]]
 name = "exceptiongroup"
 version = "1.1.0"
 description = "Backport of PEP 654 (exception groups)"
@@ -490,7 +479,7 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "67187f80bde6e7c91ad1aafa4155836295a896d788e7c6a4833b4bb0f688f4e9"
+content-hash = "b2a72995f72dabe41ac3ce51136c41a4c0a2a86834abc625cad14e4d4ac8af68"
 
 [metadata.files]
 attrs = [
@@ -717,10 +706,6 @@ dependency-injector = [
     {file = "dependency_injector-4.41.0-pp39-pypy39_pp73-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:a2dee5d4abdd21f1a30a51d46645c095be9dcc404c7c6e9f81d0a01415a49e64"},
     {file = "dependency_injector-4.41.0-pp39-pypy39_pp73-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:d03f5fa0fa98a18bd0dfce846db80e2798607f0b861f1f99c97f441f7669d7a2"},
     {file = "dependency_injector-4.41.0-pp39-pypy39_pp73-win_amd64.whl", hash = "sha256:f2842e15bae664a9f69932e922b02afa055c91efec959cb1896f6c499bf68180"},
-]
-dill = [
-    {file = "dill-0.3.6-py3-none-any.whl", hash = "sha256:a07ffd2351b8c678dfc4a856a3005f8067aea51d6ba6c700796a4d9e280f39f0"},
-    {file = "dill-0.3.6.tar.gz", hash = "sha256:e5db55f3687856d8fbdab002ed78544e1c4559a130302693d839dfe8f93f2373"},
 ]
 exceptiongroup = [
     {file = "exceptiongroup-1.1.0-py3-none-any.whl", hash = "sha256:327cbda3da756e2de031a3107b81ab7b3770a602c4d16ca618298c526f4bec1e"},
