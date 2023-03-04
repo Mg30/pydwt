@@ -116,12 +116,8 @@ class Project:
             "tasks": {"task_one": {"materialize": "view"}},
             "sources": {"one": {"table": "table_name", "schema": "some_schema"}},
             "connection": {
-                "db": "",
-                "host": "",
-                "port": 0,
-                "password": "",
-                "user": "",
-                "sql_alchemy_driver": "",
+            "url": '<connection-string>',
+            "echo": True
             },
         }
         if not os.path.exists(settings_projects):

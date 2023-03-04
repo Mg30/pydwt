@@ -1,3 +1,4 @@
+import traceback
 from typing import Dict
 import os
 import sys
@@ -5,8 +6,8 @@ from typing import Optional
 import typer
 import yaml
 from dependency_injector.wiring import register_loader_containers
-
 from pydwt.core.containers import Container
+import logging
 
 
 sys.path.append(os.getcwd())
@@ -20,6 +21,7 @@ def load_config(path: str) -> Dict:
     with open(path) as f:
         config = yaml.safe_load(f)
     return config
+
 
 # Define command-line interface using Typer
 @app.command()
@@ -45,6 +47,21 @@ def export_dag():
     container.config.from_dict(config)
     project_handler = container.project_factory()
     project_handler.export_dag()
+
+
+@app.command()
+def test_connection():
+    """Export the workflow DAG for the current project."""
+    config = load_config(path="settings.yml")
+    container.config.from_dict(config)
+    try:
+        conn = container.database_client()
+        engine = conn.get_engine()
+        dbapi = engine.connect()
+        dbapi.close()
+        logging.info("successfully connected to db")
+    except Exception:
+        logging.error(f"connection failed {traceback.print_exc()}")
 
 
 if __name__ == "__main__":
