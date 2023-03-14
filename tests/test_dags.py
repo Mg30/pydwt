@@ -4,7 +4,7 @@ import pytest
 import unittest.mock
 
 from pydwt.core.containers import Container
-
+from pydwt.core.enums import Status
 
 container = Container()
 container.database_client.override(unittest.mock.Mock())
@@ -24,7 +24,8 @@ def dag():
 
     task2 = Task(depends_on=[fake_task_one])
     task2(fake_task_two)
-    dag = Dag(tasks=[task1, task2])
+    dag = Dag()
+    dag.tasks = [task1, task2]
     dag.build_dag()
     return dag
 
@@ -41,7 +42,8 @@ def test_dag_init():
 
     task2 = Task(depends_on=[fake_task_one])
     task2(fake_task_two)
-    dag = Dag(tasks=[task1, task2])
+    dag = Dag()
+    dag.tasks = [task1, task2]
     assert dag
 
 
@@ -78,11 +80,12 @@ def test_dag_check_parents_status_error():
 
     task2 = Task(depends_on=[fake_task_one])
     task2(fake_task_two)
-    dag = Dag(tasks=[task1, task2])
+    dag = Dag()
+    dag.tasks = [task1, task2]
     dag.build_dag()
     task1.run()
     task2.run()
-    assert not dag.check_parents_status(task2)
+    assert dag.check_parents_status(task2) == Status.ERROR
 
 
 def test_dag_check_parents_status_success():
@@ -97,11 +100,12 @@ def test_dag_check_parents_status_success():
 
     task2 = Task(depends_on=[fake_task_one])
     task2(fake_task_two)
-    dag = Dag(tasks=[task1, task2])
+    dag = Dag()
+    dag.tasks = [task1, task2]
     dag.build_dag()
     task1.run()
     task2.run()
-    assert dag.check_parents_status(task2)
+    assert dag.check_parents_status(task2) == Status.SUCCESS
 
 
 def test_dag_build_level_task_name():
@@ -123,7 +127,8 @@ def test_dag_build_level_task_name():
     task3 = Task(depends_on=[fake_task_one])
     task3(fake_task_three)
 
-    dag = Dag(tasks=[task1, task2, task3])
+    dag = Dag()
+    dag.tasks = [task1, task2, task3]
     dag.build_dag()
     levels = dag.build_level(target="tests.test_dags.fake_task_three")
     assert levels == {0: ["s"], 1: [0], 2: [2]}

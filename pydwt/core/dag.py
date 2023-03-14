@@ -1,5 +1,5 @@
 import networkx as nx
-from typing import Dict, List
+from typing import Dict
 from pydwt.core.enums import Status
 
 
@@ -11,13 +11,21 @@ class Dag(object):
         graph (nx.DiGraph): Directed Graph that holds the task relationships.
     """
 
-    def __init__(self, tasks: List) -> None:
+    def __init__(self) -> None:
         """Build the DAG after object initialization."""
-        self.tasks = tasks
+        self._tasks = []
         self.graph = nx.DiGraph()
         self.source = "s"
         self.node_index = {}
         self.node_names = {}
+
+    @property
+    def tasks(self):
+        return self._tasks
+
+    @tasks.setter
+    def tasks(self, value):
+        self._tasks = value
 
     def build_dag(self) -> None:
         """Build the directed acyclic graph from the tasks and their dependencies."""
@@ -71,11 +79,11 @@ class Dag(object):
         if node_index is not None:
             level = {}
             path = nx.shortest_path(self.graph, self.source, node_index)
-            for i,node in enumerate(path):
+            for i, node in enumerate(path):
                 level[node] = i
 
         else:
-        # Assign levels to nodes based on their distance from the root node
+            # Assign levels to nodes based on their distance from the root node
             level = nx.shortest_path_length(bfs_tree, self.source)
         for node, node_level in level.items():
             if node_level not in nodes_by_level:
@@ -97,6 +105,8 @@ class Dag(object):
             if parent_index == "s":
                 continue
             parent = self.tasks[parent_index]
-            if parent.status == Status.ERROR or parent.status == Status.PENDING:
-                return False
-        return True
+            if parent.status == Status.ERROR:
+                return Status.ERROR
+            elif parent.status == Status.PENDING:
+                return Status.PENDING
+        return Status.SUCCESS
