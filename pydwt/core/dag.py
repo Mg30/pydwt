@@ -1,6 +1,7 @@
 import networkx as nx
 from typing import Dict
 from pydwt.core.enums import Status
+import logging
 
 
 class Dag(object):
@@ -101,12 +102,19 @@ class Dag(object):
             bool: True if all parent tasks have the attribute status set to success, False otherwise.
         """
         node_index = self.node_index[task.name]
+        logging.debug(f"check parent for task {task.name}\n")
+        logging.debug(list(self.graph.predecessors(node_index)), end="\n")
         for parent_index in self.graph.predecessors(node_index):
             if parent_index == "s":
                 continue
-            parent = self.tasks[parent_index]
+            logging.debug(f"parent index is {parent_index}")
+            parent = self.tasks[parent_index - 1]
+            logging.debug(f"parent {parent.name}", end="\n")
             if parent.status == Status.ERROR:
+                logging.debug("parent is error", end="\n")
                 return Status.ERROR
             elif parent.status == Status.PENDING:
+                logging.debug("parent is pending", end="\n")
                 return Status.PENDING
+        logging.debug("parent is success")
         return Status.SUCCESS
