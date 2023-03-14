@@ -1,30 +1,77 @@
-from unittest.mock import MagicMock
-from pydwt.core.executors import ThreadExecutor
+import unittest
+from pydwt.core.containers import Container
+from pydwt.core.task import Task
+import pytest
 
 
-class TestThreadExecutor:
-    def test_thread_executor_runs_all_tasks(self):
-        mock_task1 = MagicMock()
-        mock_task2 = MagicMock()
-        tasks = [mock_task1, mock_task2]
+container = Container()
+container.wire(modules=["pydwt.core.task"])
 
-        executor = ThreadExecutor(tasks=tasks)
-        executor.run()
 
-        mock_task1.run.assert_called_once()
-        mock_task2.run.assert_called_once()
+@pytest.fixture
+def fake_task_one():
+    def inner_func():
+        pass
 
-    def test_thread_executor_runs_tasks_in_parallel(self):
-        mock_task1 = MagicMock()
-        mock_task2 = MagicMock()
-        tasks = [mock_task1, mock_task2]
+    return inner_func
 
-        executor = ThreadExecutor(tasks=tasks, nb_workers=2)
-        executor.run()
 
-        assert mock_task1.run.call_count == 1
-        assert mock_task2.run.call_count == 1
+@pytest.fixture
+def fake_task_two():
+    def inner_func_bis():
+        pass
 
-    def test_thread_executor_runs_no_tasks_if_none_are_provided(self):
-        executor = ThreadExecutor(tasks=[])
-        executor.run()
+    return inner_func_bis
+
+
+@pytest.fixture
+def fake_task_three():
+    def inner_func_third():
+        raise ValueError("fake error")
+
+    return inner_func_third
+
+
+def test_thread_executor_runs_all_tasks(fake_task_one, fake_task_two):
+    task = Task(retry=2)
+    task(fake_task_one)
+
+    task2 = Task()
+    task2(fake_task_two)
+    tasks = [task, task2]
+    dag = container.dag_factory()
+    dag.tasks = tasks
+    dag.build_dag()
+    executor = container.executor_factory()
+    executor.tasks = tasks
+    executor.dag = dag
+    executor.run()
+
+    task2._count_call = 1
+    task._count_call = 1
+
+
+def test_thread_executor_no_when_parent_is_error(fake_task_one, fake_task_two, fake_task_three):
+    task = Task(retry=2)
+    task(fake_task_one)
+
+    task2 = Task()
+    task2(fake_task_two)
+
+    task3 = Task(depends_on=[fake_task_one, fake_task_two])
+    task3(fake_task_three)
+
+    tasks = [task, task2, task3]
+
+    dag = container.dag_factory()
+    dag.tasks = tasks
+    dag.build_dag()
+
+    executor = container.executor_factory()
+    executor.tasks = tasks
+    executor.dag = dag
+
+    executor.run()
+
+    task3._count_call = 0
+
