@@ -14,8 +14,11 @@ project_factory is a provider that returns a Project instance, which is a collec
 from dependency_injector import containers, providers
 from pydwt.context.connection import Connection
 from pydwt.core.workflow import Workflow
+from pydwt.core.dag import Dag
 from pydwt.core.project import Project
 from pydwt.context.datasources import Datasources
+from pydwt.core.executors import ThreadExecutor
+
 
 class Container(containers.DeclarativeContainer):
     # Configuration provider, contains the project configuration
@@ -29,20 +32,21 @@ class Container(containers.DeclarativeContainer):
 
     # Singleton provider that provides the datasources instance
     datasources = providers.ThreadSafeSingleton(
-        Datasources,
-        config.sources,
-        database_client
+        Datasources, config.sources, database_client
     )
 
+    dag_factory = providers.ThreadSafeSingleton(Dag)
+
+    executor_factory = providers.Factory(ThreadExecutor, nb_workers=5, dag=dag_factory)
 
     # Singleton provider that provides the workflow instance
     workflow_factory = providers.ThreadSafeSingleton(
         Workflow,
+        dag= dag_factory,
+        executor= executor_factory
     )
 
     # Factory provider that provides the project instance
     project_factory = providers.Factory(
-        Project,
-        workflow=workflow_factory,
-        name=config.project.name
+        Project, workflow=workflow_factory, name=config.project.name
     )

@@ -8,9 +8,7 @@ import matplotlib.pyplot as plt
 import networkx as nx
 
 from pydwt.core.dag import Dag
-from pydwt.core.executors import ThreadExecutor
-
-
+from pydwt.core.executors import AbstractExecutor
 @dataclass
 class Workflow(object):
     """Class for running a directed acyclic graph of tasks.
@@ -21,47 +19,21 @@ class Workflow(object):
     """
 
     tasks: List = field(default_factory=list, init=False)
-    dag: Dag = field(init=False)
+    dag: Dag
+    executor: AbstractExecutor
 
     def __post_init__(self) -> None:
         """Create a DAG object after initialization."""
 
-        # check if cache strategy is provided and use_cache flag is enabled
-        self.dag = Dag(self.tasks)
+        self.dag.tasks = self.tasks
+        self.executor.tasks = self.tasks
+
 
     def run(self, task_name: str = None) -> None:
         """Run the tasks in the DAG."""
-        # Get a dictionary of all the task levels in the DAG
-        levels = self.dag.build_level(task_name)
+        
         start_time_workflow = time.time()
-        # Iterate through each level in the DAG
-        for level, task_indexes in levels.items():
-            # Skip the first level (level 0) as it contains the root task
-            if level != 0:
-                logging.info(f"exploring dag level {level}")
-
-                # Create a list of tasks in the current level
-                # Check if all parent tasks has succeeded
-                tasks = [
-                    task
-                    for i, task in enumerate(self.tasks)
-                    if i in task_indexes and self.dag.check_parents_status(task)
-                ]
-
-                # Get the names of all the tasks in the current level
-                tasks_names = [task.name for task in tasks]
-
-                # Calculate the number of threads to use for the tasks set
-                nb_workers = len(tasks)
-                logging.info(
-                    f"collected tasks set {tasks_names} using {nb_workers} threads"
-                )
-                start_time = time.time()
-                executor = ThreadExecutor(tasks, nb_workers=nb_workers)
-                executor.run()
-                elapsed_time = time.time() - start_time
-                logging.info(f"tasks set completed in {elapsed_time:.2f} seconds")
-
+        self.executor.run()
         elapsed_time_workflow = time.time() - start_time_workflow
         logging.info(f"workflow completed in {elapsed_time_workflow:.2f} seconds")
 
