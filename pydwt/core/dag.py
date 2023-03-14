@@ -108,7 +108,7 @@ class Dag(object):
             if parent_index == "s":
                 continue
             logging.debug(f"parent index is {parent_index}")
-            parent = self.tasks[parent_index - 1]
+            parent = self.tasks[parent_index]
             logging.debug(f"parent {parent.name}", end="\n")
             if parent.status == Status.ERROR:
                 logging.debug("parent is error", end="\n")
