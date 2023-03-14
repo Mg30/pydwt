@@ -1,6 +1,8 @@
 import unittest
 from pydwt.core.containers import Container
 from pydwt.core.task import Task
+from pydwt.core.dag import Dag
+from pydwt.core.executors import ThreadExecutor
 import pytest
 
 
@@ -10,18 +12,18 @@ container.wire(modules=["pydwt.core.task"])
 
 @pytest.fixture
 def fake_task_one():
-    def inner_func():
+    def inner_func_one():
         pass
 
-    return inner_func
+    return inner_func_one
 
 
 @pytest.fixture
 def fake_task_two():
-    def inner_func_bis():
+    def inner_func_two():
         pass
 
-    return inner_func_bis
+    return inner_func_two
 
 
 @pytest.fixture
@@ -39,12 +41,11 @@ def test_thread_executor_runs_all_tasks(fake_task_one, fake_task_two):
     task2 = Task()
     task2(fake_task_two)
     tasks = [task, task2]
-    dag = container.dag_factory()
+    dag = Dag()
     dag.tasks = tasks
     dag.build_dag()
-    executor = container.executor_factory()
+    executor = ThreadExecutor(dag)
     executor.tasks = tasks
-    executor.dag = dag
     executor.run()
 
     assert task2._count_call == 1
@@ -61,15 +62,14 @@ def test_thread_executor_no_when_parent_is_error(fake_task_one, fake_task_two, f
     task2 = Task(depends_on=[fake_task_one, fake_task_three])
     task2(fake_task_two)
 
-    tasks = [task, task2, task3]
+    tasks = [task2, task3, task]
 
-    dag = container.dag_factory()
+    dag = Dag()
     dag.tasks = tasks
     dag.build_dag()
 
-    executor = container.executor_factory()
+    executor = ThreadExecutor(dag)
     executor.tasks = tasks
-    executor.dag = dag
 
     executor.run()
 

@@ -46,14 +46,18 @@ class ThreadExecutor(AbstractExecutor):
         """Pull a task from the queue and process"""
         while not self._queue.empty():
             task = self._queue.get()
-            if self.dag.check_parents_status(task) == Status.ERROR:
-                logging.error(f"task {task.name} can not be run because some parent are in ERROR")
+            try:
+                parents_status = self.dag.check_parents_status(task)
+                if parents_status == Status.ERROR:
+                    logging.error(f"task {task.name} can not be run because some parent are in ERROR")
+                    task.status = Status.ERROR
+                elif parents_status == Status.PENDING:
+                    logging.info(f"task {task.name} is pending")
+                    self._queue.put(task)
+                else:
+                    task.run()
+            except Exception as e:
+                logging.error(f"task {task.name} failed with error: {e}")
                 task.status = Status.ERROR
-            elif self.dag.check_parents_status(task) == Status.PENDING:
-                logging.info(
-                    f"putting task {task.name} back in the queue because some parents have not yet completed"
-                )
-                self._queue.put(task)
-            else:
-                task.run()
-            self._queue.task_done()
+            finally:
+                self._queue.task_done()
