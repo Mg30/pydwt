@@ -47,19 +47,19 @@ def test_thread_executor_runs_all_tasks(fake_task_one, fake_task_two):
     executor.dag = dag
     executor.run()
 
-    task2._count_call = 1
-    task._count_call = 1
+    assert task2._count_call == 1
+    assert task._count_call == 1
 
 
 def test_thread_executor_no_when_parent_is_error(fake_task_one, fake_task_two, fake_task_three):
     task = Task(retry=2)
     task(fake_task_one)
 
-    task2 = Task()
-    task2(fake_task_two)
-
-    task3 = Task(depends_on=[fake_task_one, fake_task_two])
+    task3 = Task()
     task3(fake_task_three)
+
+    task2 = Task(depends_on=[fake_task_one, fake_task_three])
+    task2(fake_task_two)
 
     tasks = [task, task2, task3]
 
@@ -73,5 +73,5 @@ def test_thread_executor_no_when_parent_is_error(fake_task_one, fake_task_two, f
 
     executor.run()
 
-    task3._count_call = 0
+    assert task2._count_call == 0
 

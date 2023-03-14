@@ -47,10 +47,11 @@ class ThreadExecutor(AbstractExecutor):
         while not self._queue.empty():
             task = self._queue.get()
             if self.dag.check_parents_status(task) == Status.ERROR:
-                logging.error("task can not be run")
+                logging.error(f"task {task.name} can not be run because some parent are in ERROR")
+                task.status = Status.ERROR
             elif self.dag.check_parents_status(task) == Status.PENDING:
                 logging.info(
-                    "task can not be run right now parents have not yet completed puting task back in the queue"
+                    f"putting task {task.name} back in the queue because some parents have not yet completed"
                 )
                 self._queue.put(task)
             else:
