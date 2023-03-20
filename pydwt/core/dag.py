@@ -1,5 +1,5 @@
 import networkx as nx
-from typing import Dict
+from typing import Dict, List
 from pydwt.core.enums import Status
 import logging
 
@@ -118,3 +118,22 @@ class Dag(object):
                 return Status.PENDING
         logging.debug("parent is success")
         return Status.SUCCESS
+
+    def filter_dag(self, task_name: str) -> None:
+        node_index = self.node_index[task_name]
+        paths = nx.all_shortest_paths(self.graph, source="s", target=node_index)
+        sub_nodes = set()
+        for path in paths:
+            for node in path:
+                sub_nodes.add(node)
+        sub_nodes = list(sub_nodes)
+        self.graph = nx.subgraph(self.graph, sub_nodes)
+
+        filtred_tasks = []
+
+        for n in sub_nodes:
+            if n != "s":
+                task = self.tasks[n]
+                filtred_tasks.append(task)
+
+        self.tasks = filtred_tasks
