@@ -30,13 +30,31 @@ class Workflow(object):
         self.dag.tasks = self.tasks
         self.executor.tasks = self.tasks
 
-    def run(self, task_name: str = None) -> None:
+    def run(self) -> None:
         """Run the tasks in the DAG."""
+        self.dag.build_dag()
+        start_time_workflow = time.time()
+        self.executor.run()
+        elapsed_time_workflow = time.time() - start_time_workflow
+        logging.info(f"workflow completed in {elapsed_time_workflow:.2f} seconds")
+
+    def run_with_name_and_deps(self, task_name: str) -> None:
+        """Run the tasks in the DAG."""
+        self.dag.build_dag()
+        self.dag.filter_dag(task_name)
+
+        self.tasks = self.dag.tasks
+        self.executor.tasks = self.tasks
 
         start_time_workflow = time.time()
         self.executor.run()
         elapsed_time_workflow = time.time() - start_time_workflow
         logging.info(f"workflow completed in {elapsed_time_workflow:.2f} seconds")
+
+    def run_with_name_no_deps(self, task_name: str) -> None:
+        """Run the tasks in the DAG."""
+        task = next(task for task in self.tasks if task.name == task_name)
+        task.run()
 
     def export_dag(self, path: str) -> None:
         """Export the DAG to a PNG image file.
