@@ -49,7 +49,9 @@ class ThreadExecutor(AbstractExecutor):
             try:
                 parents_status = self.dag.check_parents_status(task)
                 if parents_status == Status.ERROR:
-                    logging.error(f"task {task.name} can not be run because some parent are in ERROR")
+                    logging.error(
+                        f"task {task.name} can not be run because some parent are in ERROR"
+                    )
                     task.status = Status.ERROR
                 elif parents_status == Status.PENDING:
                     logging.info(f"task {task.name} is pending")

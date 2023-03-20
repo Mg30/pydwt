@@ -41,9 +41,7 @@ class Container(containers.DeclarativeContainer):
 
     # Singleton provider that provides the workflow instance
     workflow_factory = providers.ThreadSafeSingleton(
-        Workflow,
-        dag= dag_factory,
-        executor= executor_factory
+        Workflow, dag=dag_factory, executor=executor_factory
     )
 
     # Factory provider that provides the project instance

@@ -115,10 +115,7 @@ class Project:
             },
             "tasks": {"task_one": {"materialize": "view"}},
             "sources": {"one": {"table": "table_name", "schema": "some_schema"}},
-            "connection": {
-            "url": '<connection-string>',
-            "echo": True
-            },
+            "connection": {"url": "<connection-string>", "echo": True},
         }
         if not os.path.exists(settings_projects):
             with open(settings_projects, "w") as file:

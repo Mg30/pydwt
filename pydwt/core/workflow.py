@@ -9,6 +9,8 @@ import networkx as nx
 
 from pydwt.core.dag import Dag
 from pydwt.core.executors import AbstractExecutor
+
+
 @dataclass
 class Workflow(object):
     """Class for running a directed acyclic graph of tasks.
@@ -28,10 +30,9 @@ class Workflow(object):
         self.dag.tasks = self.tasks
         self.executor.tasks = self.tasks
 
-
     def run(self, task_name: str = None) -> None:
         """Run the tasks in the DAG."""
-        
+
         start_time_workflow = time.time()
         self.executor.run()
         elapsed_time_workflow = time.time() - start_time_workflow
