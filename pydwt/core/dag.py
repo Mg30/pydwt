@@ -120,18 +120,24 @@ class Dag(object):
         return Status.SUCCESS
 
     def filter_dag(self, task_name: str) -> None:
+        """
+        Filters the DAG by removing all nodes that are not reachable from the given task.
+
+        Args:
+        task_name: a string representing the name of the task to start the filtering from
+
+        Returns:
+        None
+        """
         node_index = self.node_index[task_name]
-        paths = nx.all_shortest_paths(self.graph, source="s", target=node_index)
-        sub_nodes = set()
-        for path in paths:
-            for node in path:
-                sub_nodes.add(node)
-        sub_nodes = list(sub_nodes)
-        self.graph = nx.subgraph(self.graph, sub_nodes)
+
+        nodes = nx.ancestors(self.graph, node_index) | {node_index}
+        nodes = list(nodes)
+        self.graph = self.graph.subgraph(nodes)
 
         filtred_tasks = []
 
-        for n in sub_nodes:
+        for n in nodes:
             if n != "s":
                 task = self.tasks[n]
                 filtred_tasks.append(task)
