@@ -8,7 +8,8 @@ from sqlalchemy import (
     MetaData,
     func,
     ForeignKey,
-    Selectable,
+    column,
+    text,
 )
 from pydwt.sql.session import Session
 import pytest
@@ -81,9 +82,44 @@ def test_dataframe_select(session):
     assert df2.columns == ["name", "age"]
 
 
+def test_dataframe_select_string(session):
+    df = session.table("users")
+    df2 = df.select("name", "age")
+
+    assert df2.columns == ["name", "age"]
+
+
+def test_dataframe_select_column(session):
+    df = session.table("users")
+    df2 = df.select(column("name"), column("age"))
+
+    assert df2.columns == ["name", "age"]
+
+
 def test_dataframe_where(session):
     df = session.table("users")
     df2 = df.where(literal_column("age") > 30)
+
+    assert len(df2) == 3
+
+
+def test_dataframe_filter(session):
+    df = session.table("users")
+    df2 = df.where(literal_column("age") > 30)
+
+    assert len(df2) == 3
+
+
+def test_dataframe_filter_string(session):
+    df = session.table("users")
+    df2 = df.filter("age > 30")
+
+    assert len(df2) == 3
+
+
+def test_dataframe_where_string(session):
+    df = session.table("users")
+    df2 = df.where("age > 30")
 
     assert len(df2) == 3
 
@@ -117,6 +153,18 @@ def test_dataframe_join(session):
     df3 = df1.join(df2, (df1.user_id == df2.user_id_))
 
     assert df3.select(df3.age)
+
+
+def test_dataframe_union(session):
+    df1 = session.table("users")
+    df1 = df1.with_column("other_col", literal_column("age") * 2)
+
+    df2 = session.table("users")
+
+    df3 = df1.union(df2)
+
+    assert "other_col" in df3.columns
+    assert df3.collect()
 
 
 def test_dataframe_drop(session):

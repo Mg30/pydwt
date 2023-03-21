@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import List, Literal
 import sqlalchemy
-from sqlalchemy import select, join
+from sqlalchemy import select, join, union_all, text
 from pydwt.sql.materializations import CreateTableAs, CreateViewAs
 
 
@@ -43,7 +43,14 @@ class DataFrame(dict):
         Returns:
             DataFrame: New DataFrame with only the selected columns.
         """
-        projection = select(*args).cte()
+        columns = []
+        for arg in args:
+            if isinstance(arg, str):
+                columns.append(self[arg])
+            else:
+                columns.append(arg)
+
+        projection = select(*columns).cte()
         return DataFrame(projection, self._engine)
 
     def where(self, expr) -> DataFrame:
@@ -55,8 +62,24 @@ class DataFrame(dict):
         Returns:
             DataFrame: New DataFrame with only the rows that meet the condition.
         """
-        selection = select(self._stmt).where(expr).cte()
-        return DataFrame(selection, self._engine)
+        if isinstance(expr, str):
+            filtered = select(self._stmt).where(text(expr)).cte()
+        else:
+            filtered = select(self._stmt).where(expr).cte()
+        return DataFrame(filtered, self._engine)
+
+    def filter(self, condition: str) -> DataFrame:
+        """
+        Create a new DataFrame by filtering this DataFrame with a SQL condition.
+
+        Args:
+            condition (str): A SQL WHERE clause condition.
+
+        Returns:
+            DataFrame: A new DataFrame containing only rows that satisfy the condition.
+        """
+
+        return self.where(condition)
 
     def with_column(self, name, expr) -> DataFrame:
         """Create a new DataFrame that has an additional column.
@@ -208,3 +231,30 @@ class DataFrame(dict):
         result = conn.execute(select(self._stmt)).fetchall()
         conn.close()
         return result
+
+    def union(self, other: "DataFrame") -> DataFrame:
+        """
+        Return a new DataFrame that is the union of this DataFrame and another DataFrame.
+
+        Args:
+            other (DataFrame): The other DataFrame to union with.
+
+        Returns:
+            DataFrame: A new DataFrame that is the union of this DataFrame and another DataFrame.
+        """
+        # Check if the two dataframes have the same columns, if not add a column with null values for missing column
+        missing_columns = set(self.columns) - set(other.columns)
+        if missing_columns:
+            for col in missing_columns:
+                other = other.with_column(col, sqlalchemy.sql.expression.null())
+
+        missing_columns = set(other.columns) - set(self.columns)
+        if missing_columns:
+            for col in missing_columns:
+                self = self.with_column(col, sqlalchemy.sql.expression.null())
+
+        # Construct the union statement
+        union_stmt = union_all(select(self._stmt), select(other._stmt)).cte()
+
+        # Return the result as a new DataFrame
+        return DataFrame(union_stmt, self._engine)

@@ -32,7 +32,10 @@ def new(project_name: str):
 
 
 @app.command()
-def run(name: Optional[str] = typer.Argument(None), with_dep: bool = typer.Option(False, "--with-dep")):
+def run(
+    name: Optional[str] = typer.Argument(None),
+    with_dep: bool = typer.Option(False, "--with-dep"),
+):
     """Run the workflow DAG for the current project."""
     config = load_config(path=config_file)
     container.config.from_dict(config)
