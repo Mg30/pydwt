@@ -86,7 +86,8 @@ class DataFrame(dict):
 
         Args:
             name (str): Name of the new column.
-            expr (sql.expression): SQLAlchemy expression to compute the values of the new column.
+            expr (sql.expression): SQLAlchemy expression
+            to compute the values of the new column.
 
         Returns:
             DataFrame: New DataFrame with an additional column.
@@ -129,7 +130,8 @@ class DataFrame(dict):
         Args:
             *args (Selectable): Columns to group by.
             **kwargs:
-                agg (Dict[str, Tuple[Callable, str]]): Dictionary that maps from column name to
+                agg (Dict[str, Tuple[Callable, str]]):
+                Dictionary that maps from column name to
                 (aggregation function, name of the aggregation).
 
         Returns:
@@ -225,7 +227,8 @@ class DataFrame(dict):
         Retrieve all the data in the dataframe as a list.
 
         Returns:
-            List[dict]: A list of dictionaries, where each dictionary represents a row in the dataframe.
+            List[dict]: A list of dictionaries,
+            where each dictionary represents a row in the dataframe.
         """
         conn = self._engine.connect()
         result = conn.execute(select(self._stmt)).fetchall()
@@ -234,15 +237,18 @@ class DataFrame(dict):
 
     def union(self, other: "DataFrame") -> DataFrame:
         """
-        Return a new DataFrame that is the union of this DataFrame and another DataFrame.
+        Return a new DataFrame that is the union
+        of this DataFrame and another DataFrame.
 
         Args:
             other (DataFrame): The other DataFrame to union with.
 
         Returns:
-            DataFrame: A new DataFrame that is the union of this DataFrame and another DataFrame.
+            DataFrame: A new DataFrame that is the union
+            of this DataFrame and another DataFrame.
         """
-        # Check if the two dataframes have the same columns, if not add a column with null values for missing column
+        # Check if the two dataframes have the same columns
+        # if not add a column with null values for missing column
         missing_columns = set(self.columns) - set(other.columns)
         if missing_columns:
             for col in missing_columns:

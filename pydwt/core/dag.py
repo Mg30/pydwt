@@ -1,5 +1,5 @@
 import networkx as nx
-from typing import Dict, List
+from typing import Dict
 from pydwt.core.enums import Status
 import logging
 
@@ -61,7 +61,8 @@ class Dag(object):
         """Assign levels to nodes in the dag using the breadth-first search.
 
         Args:
-            target (str): Optional target node. If provided, the search will be performed up to this node.
+            target (str): Optional target node. If provided,
+            the search will be performed up to this node.
 
         Returns:
             Dict: Dictionary of levels and their corresponding node indexes.
@@ -99,7 +100,8 @@ class Dag(object):
             task: The task to check.
 
         Returns:
-            bool: True if all parent tasks have the attribute status set to success, False otherwise.
+            bool: True if all parent tasks have the attribute status set to success,
+            False otherwise.
         """
         node_index = self.node_index[task.name]
         logging.debug(f"check parent for task {task.name}\n")
@@ -121,10 +123,12 @@ class Dag(object):
 
     def filter_dag(self, task_name: str) -> None:
         """
-        Filters the DAG by removing all nodes that are not reachable from the given task.
+        Filters the DAG by removing all nodes that
+        are not reachable from the given task.
 
         Args:
-        task_name: a string representing the name of the task to start the filtering from
+        task_name: a string representing the name
+        of the task to start the filtering from
 
         Returns:
         None
