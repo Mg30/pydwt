@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from pydwt.sql.session import Session
 from pydwt.context.connection import Connection
-from typing import Any, Dict
+from typing import Dict
 
 
 @dataclass

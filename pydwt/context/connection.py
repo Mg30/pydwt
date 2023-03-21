@@ -8,7 +8,9 @@ class Connection(object):
     """Class representing a connection to a database.
 
     Attributes:
-        params (Dict): containning SQL alchemy DB url and Kwargs forwarded to create_engine
+        params (Dict): containning SQL alchemy DB url and Kwargs forwarded
+        to create_engine.
+
         engine (sqlalchemy.engine.Engine): Database engine.
     """
 

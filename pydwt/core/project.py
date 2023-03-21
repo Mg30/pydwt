@@ -19,8 +19,10 @@ class Project:
     Attributes:
         workflow (Workflow): Workflow object to execute DAG.
         name (str): Name of the project.
-        models_folder (str): Name of the folder that contains the models (default: "models").
-        dags_folder (str): Name of the folder to store the DAGs (default: "dags").
+        models_folder (str): Name of the folder that
+        contains the models (default: "models").
+        dags_folder (str): Name of the folder to store
+        the DAGs (default: "dags").
     """
 
     workflow: Workflow
@@ -29,7 +31,8 @@ class Project:
     dags_folder: str = field(default="dags")
 
     def __post_init__(self) -> None:
-        # Add the current working directory to the system path to allow importing modules from the project.
+        # Add the current working directory to the system path
+        # to allow importing modules from the project.
         sys.path.append(os.getcwd())
 
         # Configure the logging.
@@ -153,7 +156,7 @@ def task_one(config:dict = Provide[Container.config.tasks.task_one]):
 
 @Task(depends_on=[task_one])
 def task_two():
-    print("somme processing")    
+    print("somme processing")
 
 """
                 )

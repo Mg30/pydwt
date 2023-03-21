@@ -23,8 +23,10 @@ class BaseTask(ABC):
     :param depends_on: List of other tasks that this task depends on
     :param runs_on: Schedule for running this task. Default is `Daily()`
     :param retry: Number of times to retry this task in case of failure
-    :param ttl_minutes: Time-to-live in minutes. If a positive value is provided, the task will only run
-                        if the time elapsed since the last run is greater than or equal to this value.
+    :param ttl_minutes: Time-to-live in minutes.
+    If a positive value is provided, the task will only run
+    if the time elapsed since the last run is
+    greater than or equal to this value.
     """
 
     depends_on: List[Callable] = field(default_factory=list)
@@ -86,8 +88,9 @@ class Task(BaseTask):
     :param depends_on: List of other tasks that this task depends on
     :param runs_on: Schedule for running this task. Default is `Daily()`
     :param retry: Number of times to retry this task in case of failure
-    :param ttl_minutes: Time-to-live in minutes. If a positive value is provided, the task will only run
-                        if the time elapsed since the last run is greater than or equal to this value.
+    :param ttl_minutes: Time-to-live in minutes.
+    If a positive value is provided,the task will only run
+    if the time elapsed since the last run is greater than or equal to this value.
     """
 
     workflow: Workflow = Provide[Container.workflow_factory]
@@ -126,10 +129,11 @@ class Task(BaseTask):
                 self._task()
                 self.status = Status.SUCCESS
                 break
-            except Exception as e:
+            except Exception:
                 if n == self.retry:
                     logging.error(
-                        f"task  {self.name} failed after {self.retry} attempts: {traceback.print_exc()}"
+                        f"task  {self.name} failed after {self.retry}\
+                        attempts: {traceback.print_exc()}"
                     )
                     self.status = Status.ERROR
 
