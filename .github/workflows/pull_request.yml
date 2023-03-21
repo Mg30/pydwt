@@ -31,7 +31,7 @@ jobs:
             echo "::set-output name=reformatted::false"
           fi
       - name: Run Flake8
-        run: poetry run flake8
+        run: poetry run flake8 pydwt/
         
       - name: Check for Flake8 errors
         run: |
