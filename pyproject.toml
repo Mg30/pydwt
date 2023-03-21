@@ -6,7 +6,7 @@ authors = ["gonza <matgonzalez@hotmail.fr>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.8.1"
 networkx = "^3.0"
 matplotlib = "^3.6.3"
 sqlalchemy = "^2.0.1"
@@ -19,6 +19,7 @@ dependency-injector = "^4.41.0"
 pytest = "^7.2.1"
 black = "^23.1.0"
 pytest-cov = "^4.0.0"
+flake8 = "^6.0.0"
 
 [build-system]
 requires = ["poetry-core"]
