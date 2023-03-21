@@ -120,7 +120,7 @@ class DataFrame(dict):
         Returns:
             A new DataFrame object with the specified columns removed.
         """
-        cols = [self[col] for col in args if col not in args]
+        cols = [self[col] for col in self.columns if col not in args]
         stmt = select(*cols)
         return DataFrame(stmt.cte(), self._engine)
 

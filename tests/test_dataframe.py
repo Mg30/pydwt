@@ -172,6 +172,7 @@ def test_dataframe_drop(session):
     df1 = df1.drop("age")
 
     assert "age" not in df1.columns
+    assert df1.collect()
 
 
 def test_dataframe_to_cte(session):
