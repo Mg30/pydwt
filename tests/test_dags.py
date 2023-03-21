@@ -132,3 +132,47 @@ def test_dag_build_level_task_name():
     dag.build_dag()
     levels = dag.build_level(target="tests.test_dags.fake_task_three")
     assert levels == {0: ["s"], 1: [0], 2: [2]}
+
+
+def test_filter_dag():
+    def fake_task_one():
+        pass
+
+    def fake_task_two():
+        pass
+
+    def fake_task_three():
+        pass
+
+    def fake_task_four():
+        pass
+
+    def fake_task_five():
+        pass
+
+    task1 = Task(retry=2)
+    task1(fake_task_one)
+
+    task2 = Task(depends_on=[fake_task_one])
+    task2(fake_task_two)
+
+    task3 = Task(depends_on=[fake_task_one])
+    task3(fake_task_three)
+
+    task4 = Task(depends_on=[fake_task_two, fake_task_three])
+    task4(fake_task_four)
+
+    task5 = Task(depends_on=[fake_task_two])
+    task5(fake_task_five)
+
+    dag = Dag()
+    dag.tasks = [task1, task2, task3, task4, task5]
+    dag.build_dag()
+    dag.filter_dag(task_name="tests.test_dags.fake_task_four")
+    taks_name = [task.name for task in dag.tasks]
+    assert taks_name == [
+        "tests.test_dags.fake_task_one",
+        "tests.test_dags.fake_task_two",
+        "tests.test_dags.fake_task_three",
+        "tests.test_dags.fake_task_four",
+    ]

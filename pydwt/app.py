@@ -9,7 +9,7 @@ from dependency_injector.wiring import register_loader_containers
 from pydwt.core.containers import Container
 import logging
 
-
+config_file = "settings.yml"
 sys.path.append(os.getcwd())
 app = typer.Typer()
 container = Container()
@@ -32,18 +32,18 @@ def new(project_name: str):
 
 
 @app.command()
-def run(name: Optional[str] = typer.Argument(None)):
+def run(name: Optional[str] = typer.Argument(None), with_dep: bool = typer.Option(False, "--with-dep")):
     """Run the workflow DAG for the current project."""
-    config = load_config(path="settings.yml")
+    config = load_config(path=config_file)
     container.config.from_dict(config)
     project_handler = container.project_factory()
-    project_handler.run(name)
+    project_handler.run(name, with_dep)
 
 
 @app.command()
 def export_dag():
     """Export the workflow DAG for the current project."""
-    config = load_config(path="settings.yml")
+    config = load_config(path=config_file)
     container.config.from_dict(config)
     project_handler = container.project_factory()
     project_handler.export_dag()
@@ -52,7 +52,7 @@ def export_dag():
 @app.command()
 def test_connection():
     """Export the workflow DAG for the current project."""
-    config = load_config(path="settings.yml")
+    config = load_config(path=config_file)
     container.config.from_dict(config)
     try:
         conn = container.database_client()

@@ -1,5 +1,5 @@
 import networkx as nx
-from typing import Dict
+from typing import Dict, List
 from pydwt.core.enums import Status
 import logging
 
@@ -118,3 +118,28 @@ class Dag(object):
                 return Status.PENDING
         logging.debug("parent is success")
         return Status.SUCCESS
+
+    def filter_dag(self, task_name: str) -> None:
+        """
+        Filters the DAG by removing all nodes that are not reachable from the given task.
+
+        Args:
+        task_name: a string representing the name of the task to start the filtering from
+
+        Returns:
+        None
+        """
+        node_index = self.node_index[task_name]
+
+        nodes = nx.ancestors(self.graph, node_index) | {node_index}
+        nodes = list(nodes)
+        self.graph = self.graph.subgraph(nodes)
+
+        filtred_tasks = []
+
+        for n in nodes:
+            if n != "s":
+                task = self.tasks[n]
+                filtred_tasks.append(task)
+
+        self.tasks = filtred_tasks

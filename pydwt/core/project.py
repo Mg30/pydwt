@@ -62,12 +62,21 @@ class Project:
         for model in models:
             importlib.import_module(f"{self.name}.models.{model}")
 
-    def run(self, task_name: str = None) -> None:
+    def run(self, task_name: str = None, with_dep: bool = False) -> None:
         """Run the DAG-based workflow."""
+
         task_full_name = f"{self.name}.models.{task_name}" if task_name else None
         self.import_all_models()
-        self.workflow.dag.build_dag()
-        self.workflow.run(task_full_name)
+        if task_name and with_dep:
+            self.workflow.run_with_name_and_deps(task_full_name)
+
+        elif task_name and not with_dep:
+            self.workflow.run_with_name_no_deps(task_full_name)
+
+        elif not task_name and not with_dep:
+            self.workflow.run()
+        else:
+            raise ValueError("with-dep must be with a task-name")
 
     def export_dag(self) -> None:
         """Export the DAG to a PNG image file."""
