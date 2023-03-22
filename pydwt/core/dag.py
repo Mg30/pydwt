@@ -137,7 +137,6 @@ class Dag(object):
 
         nodes = nx.ancestors(self.graph, node_index) | {node_index}
         nodes = list(nodes)
-        self.graph = self.graph.subgraph(nodes)
 
         filtred_tasks = []
 
@@ -147,3 +146,5 @@ class Dag(object):
                 filtred_tasks.append(task)
 
         self.tasks = filtred_tasks
+        self.build_dag()
+
