@@ -60,6 +60,7 @@ def session():
             {"name": "Product B", "user_id": 2},
             {"name": "Product C", "user_id": 2},
             {"name": "Product D", "user_id": 3},
+            {"name": "Product D", "user_id": 3},
             {"name": "Product E", "user_id": 4},
             {"name": "Product F", "user_id": 5},
         ],
@@ -187,3 +188,24 @@ def test_create_dataframe(session):
     stmt = df1.to_cte()
     df2 = session.create_dataframe(stmt)
     assert type(df2) == DataFrame
+
+
+def test_distinct_one_col(session):
+    df = session.table("products")
+    df = df.select("user_id").distinct()
+    values = df.collect()
+    assert values == [(1,), (2,), (3,), (4,), (5,)]
+
+
+def test_distinct_multi_col(session):
+    df = session.table("products")
+    df = df.select(df.user_id, df.name).distinct()
+    values = df.collect()
+    assert values == [
+        (1, "Product A"),
+        (2, "Product B"),
+        (2, "Product C"),
+        (3, "Product D"),
+        (4, "Product E"),
+        (5, "Product F"),
+    ]
