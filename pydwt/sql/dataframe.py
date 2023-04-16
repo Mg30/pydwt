@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import List, Literal
 import sqlalchemy
-from sqlalchemy import select, join, union_all, text
+from sqlalchemy import select, join, union_all, text, column
 from pydwt.sql.materializations import CreateTableAs, CreateViewAs
 
 
@@ -264,3 +264,12 @@ class DataFrame(dict):
 
         # Return the result as a new DataFrame
         return DataFrame(union_stmt, self._engine)
+
+    def distinct(self) -> DataFrame:
+        """Create a new DataFrame with only distinct rows.
+        Returns:
+            DataFrame: New DataFrame with only distinct rows based on the columns specified.
+        """
+        stmt = select(self._stmt).distinct()
+
+        return DataFrame(stmt.cte(), self._engine)
