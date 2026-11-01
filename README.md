@@ -1,5 +1,17 @@
 # pydwt
 
+## Project status: Archived
+
+pydwt was developed in early 2023 as an exploration of Python-first SQL
+transformations and DAG-based data workflows, at a time when
+[dbt's Python model support](https://docs.getdbt.com/docs/build/python-models)
+was still relatively new and platform-specific.
+
+The project is preserved as an open-source engineering reference but is no longer
+actively maintained. For new projects, consider [dbt](https://www.getdbt.com/)
+for analytics transformations or [flowrun](https://github.com/Mg30/flowrun)
+for lightweight Python workflow orchestration.
+
 Python data workflows combining SQLAlchemy Core transformations with directed
 acyclic graph (DAG) orchestration. `Session` and `DataFrame` build SQL queries;
 decorated tasks materialize results or perform other processing, and the workflow
