@@ -1,11 +1,31 @@
 # pydwt
 
-The pydwt library provides a set of tools for orchestrating tasks of data processing in a directed acyclic graph (DAG). This DAG is composed of tasks that have dependencies between them and can be executed in parallel or sequentially, depending on their dependencies.
+Python data workflows combining SQLAlchemy Core transformations with directed
+acyclic graph (DAG) orchestration. `Session` and `DataFrame` build SQL queries;
+decorated tasks materialize results or perform other processing, and the workflow
+executes tasks in dependency order using a thread executor.
+
+## Status and compatibility
+
+The `develop` branch is version **0.2.0a0**, an alpha source version. The latest
+PyPI release is **0.1.1** (March 2023); this README describes the source branch.
+Package metadata declares Python **>=3.8.1,<4.0**. CI configuration lists
+Python 3.8–3.11, but uses the retired `ubuntu-18.04` runner. That configuration
+does not establish current passing tests or support for newer Python versions.
 
 ## Installation
-`pip install pydwt`
 
-## Guide 
+For the source version described here:
+
+```bash
+pip install 'pydwt @ git+https://github.com/Mg30/pydwt.git@develop'
+```
+
+For the published release, use `pip install pydwt==0.1.1`. Install the database
+driver required by your SQLAlchemy connection URL separately.
+
+## Guide
+
 In this document, we will provide a brief explanation of the main modules of the pydwt library, which are:
 
 * `session.py`: module for interacting with a database and creating DataFrame objects to manipulate data.
@@ -16,6 +36,7 @@ In this document, we will provide a brief explanation of the main modules of the
 
 
 ## Session
+
 The `session.py` module is responsible for interacting with a database and creating DataFrame objects to manipulate data. To use this module, you need to create an instance of the Session class, passing an SQLAlchemy engine object and the schema of the database (if it has one). Then, you can use the table method to create a DataFrame object from a table in the database.
 
 Here is an example of how to create a Session object and use the table method to create a DataFrame object:
@@ -39,8 +60,8 @@ You can also materialize a DataFrame as a table or view in the database by calli
 Here is an example of how to create a DataFrame object and perform some operations on it:
 
 ```python
+from sqlalchemy import func
 from pydwt.sql.session import Session
-from pydwt.sql.dataframe import DataFrame
 
 session = Session(engine, schema="my_schema")
 
@@ -55,41 +76,55 @@ df = df.where(df.col1 > 10)
 # group by a column and aggregate another column
 df = df.group_by(df.col2, agg={df.col1: (func.sum, "sum_col1")})
 
-# show the resulting DataFrame
-df.materialize("new_table", as_="table")
+# persist the resulting query as a table
+df.materialize("my_schema.new_table", as_="table")
 
 ```
+
+This continues the `engine` setup above and assumes `my_table` contains `col1`
+and `col2`. The DataFrame represents a SQL query, not an in-memory pandas table.
+Materialization emits database-specific DDL: `table` drops and recreates the named
+table; `view` uses `CREATE OR REPLACE VIEW`. Use a scratch schema when experimenting
+and verify the emitted SQL for your database dialect.
+
 ## Task
 
 The `task.py` module defines a Task class for representing a task in the DAG. A Task object has a run method that is responsible for executing the task. You can also define the task's dependencies, schedule, and other parameters when creating the object.
 
-To create a Task object, you can use the `@Task` decorator and define the run method. Here is an example of how to create a Task object:
+Use `@Task()` to register a Python function as a task. Declare upstream functions
+with `depends_on`:
 
 ```python
+from sqlalchemy import case
 from pydwt.core.task import Task
 
 @Task()
 def task_one():
     df = session.table("features")
     df = df.with_column("new_column", case((df.preds == "hw", "W")))
-    df.materialize("new_table", as_="table")
+    df.materialize("my_schema.new_table", as_="table")
 
 
 @Task(depends_on=[task_one])
 def task_two():
     df = session.table("new_table")
     df = df.where((df.new_column == "W"))
-    df = df.with_column("new_column", case((df.preds == "hw", "W")))
     df.show()
 
 ```
 
-## Create a new pydwt project:
+Place these task definitions in a generated project's `models` directory and run
+them through the CLI, which initializes configuration and dependency injection.
+The example uses the `session` defined above and a `features` table with a `preds`
+column.
+
+## Create a new pydwt project
 
 `pydwt new <my_project>`
 
 This command will create a new project with the name "my_project" and the required file structure.
-```
+
+```text
 my_project/
     models/
         example.py
@@ -99,32 +134,34 @@ settings.yml
 
 * `project_name/models`: where you will put your tasks
 * `project_name/dags/`: where the corresponding dag PNG file will be
-* `settings.yml`: a configuration file for your project. This file includes the configuration options for your project, such as the path to your data directory.
+* `settings.yml`: the project name, database connection, sources, and task configuration.
 
 
 
 ## Export the DAG
 
-`pydwt export-dag` 
+`pydwt export-dag`
 
 will export the current state of your dag in the `project_name/dags/` as PNG file with timestamp.
 
 ## Run your project
 
-`pydwt run <module.function_name>`
+```bash
+pydwt run
+pydwt run example.task_two
+pydwt run example.task_two --with-dep
+```
 
-If no argument provided will run the current state of your DAG. It will process the tasks in the DAG by level and parallelize
-it with the `ThreadExecutor`. It a task failed then its child tasks will not be run.
-
-If argument provided in the form of `module.function_name` for instance `example.task_one` then will run all tasks in the dag leading to this task.  
-If parent tasks succeeded then run the task.
+With no task name, the workflow runs the full DAG in dependency levels using
+`ThreadExecutor`. A named task runs alone by default. Add `--with-dep` to include
+its upstream dependencies. Failed parent tasks prevent dependent tasks from running.
 
 
 ## Test your connection setup
 
 `pydwt test-connection`
 
-will test the current setup of your DB connectiona according to your `settings.yml` file.
+will test the current database connection according to your `settings.yml` file.
 
 ## Configuration of your pydwt project
 
@@ -135,7 +172,7 @@ The connection section contains the configuration details for connecting to the 
 
 * `url`: the connection string to your db
 
-You can add others keys that will be forwarded to the underlying `create_engine` function
+You can add other keys that will be forwarded to the underlying `create_engine` function
 for instance you can add a `echo : true` and it will call `create_engine(url=url, echo=echo)`
 see [here](https://docs.sqlalchemy.org/en/20/core/engines.html#sqlalchemy.create_engine) supported args.
 
@@ -149,10 +186,12 @@ This section contains the configuration for each task defined in the pydwt proje
 
 Each task is identified by its name, and the configuration is stored as a dictionary.  
 
-The dictionary can contain any key-value pairs that the task implementation may need to use, but it must have a key named `materialize`.
+The dictionary contains key-value pairs consumed by your task implementation.
+The generated example includes `materialize`; the workflow does not require or
+automatically apply that setting.
 
-* The `materialize` key specifies how the task output should be stored. The value can be either `view` or `table`.
-The value of the materialize key determines whether the task output should be stored as a SQL view or a SQL table. If the value is view, the output is stored as a SQL view. If the value is table, the output is stored as a SQL table.
+For example, a task can read `materialize` and pass `view` or `table` to
+`DataFrame.materialize(..., as_=...)`.
 
 Each task implementation can access its configuration by injecting the config argument and specifying Provide[Container.config.tasks.<task_name>]. The injected config argument is a dictionary containing the configuration for the specified task. 
 
@@ -170,7 +209,7 @@ def task_one(config:dict = Provide[Container.config.tasks.task_one]):
 
 @Task(depends_on=[task_one])
 def task_two():
-    print("somme processing")
+    print("some processing")
 ```
 ### sources
 
@@ -183,7 +222,7 @@ sources:
     schema: yyy
 ```
 
-You can then required this datasource in your tasks
+You can then request this data source in your tasks:
 
 ```python
 from pydwt.core.task import Task
@@ -202,4 +241,4 @@ def task_one(
 
 
 ## License
-This project is licensed under GPL.
+This project is licensed under [GPL-3.0](LICENSE).
